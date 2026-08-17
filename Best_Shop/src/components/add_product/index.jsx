@@ -60,8 +60,21 @@ function AddStocks({ text }) {
   const [sizes, setSizes] = useState([]);
   const [editModalSizeOpen, setEditModalSizeOpen] = useState(false);
   const [selectedEditSize, setSelectedEditSize] = useState(null);
+  const [selectedSize, setSelectedSize] = useState(null);
 
-  const [sizeQuantities, setSizeQuantities] = useState({});
+  const [editOccasionName, setEditedOccasionName] = useState("");
+  const [editModalOccasionOpen, setEditModalOccasionOpen] = useState(false);
+  const [occasions, setOccasions] = useState([]);
+  const [selectedOccasion, setSelectedOccasion] = useState(null);
+  const [selectedEditOccasion, setSelectedEditOccasion] = useState(null);
+
+  const [editTypeName, setEditedTypeName] = useState("");
+  const [editModalTypeOpen, setEditModalTypeOpen] = useState(false);
+  const [types, setTypes] = useState([]);
+  const [selectedType, setSelectedType] = useState(null);
+  const [selectedEditType, setSelectedEditType] = useState(null);
+
+  const [showPricing, setShowPricing] = useState(false);
 
   const [showCategories, setShowCategories] = useState(true);
   const [showItemNames, setShowItemNames] = useState(false);
@@ -69,6 +82,10 @@ function AddStocks({ text }) {
   const [showBrands, setShowBrands] = useState(false);
   const [showModels, setShowModels] = useState(false);
   const [showColors, setShowColors] = useState(false);
+  const [showSizes, setShowSizes] = useState(false);
+  const [showOccasions, setShowOccasions] = useState(false);
+  const [showTypes, setShowTypes] = useState(false);
+  const [quantity, setQuantity] = useState("");
 
   const notifySuccess = (message) => {
     toast.success(message, { position: toast.POSITION.BOTTOM_LEFT });
@@ -98,6 +115,8 @@ function AddStocks({ text }) {
   const [modelvalue, setModelValue] = useState("");
   const [colorvalue, setColorValue] = useState("");
   const [sizevalue, setSizeValue] = useState("");
+  const [occasionvalue, setOccasionValue] = useState("");
+  const [typevalue, setTypeValue] = useState("");
 
   // dialogs
   const [categoryopen, setCategoryOpen] = useState(false);
@@ -107,6 +126,8 @@ function AddStocks({ text }) {
   const [modelopen, setModelOpen] = useState(false);
   const [coloropen, setColorOpen] = useState(false);
   const [sizeopen, setSizeOpen] = useState(false);
+  const [occasionopen, setOccasionOpen] = useState(false);
+  const [typeopen, setTypeOpen] = useState(false);
   // category dialog
   const handleCategoryOpen = () => {
     setCategoryOpen(true);
@@ -364,6 +385,57 @@ function AddStocks({ text }) {
     }
     setSizeOpen(false); 
   };
+
+  const handleOccasionOpen = () => setOccasionOpen(true);
+  const handleOccasionClose = () => setOccasionOpen(false);
+
+  const handleOccasionSubmit = async (event) => {
+    event.preventDefault();
+    try {
+      const formData = new FormData();
+      formData.append("size", selectedSize.id);
+      formData.append("name", occasionvalue);
+
+      const response = await requestApi("POST", "/api/structure/occasion", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      if (response.success) {
+        fetchOccasions(selectedSize.id);
+        notifySuccess("Occasion Added Successfully");
+        setOccasionOpen(false);
+      }
+    } catch (error) {
+      notifyError("Occasion Failed to Add");
+    }
+    setOccasionOpen(false);
+  };
+
+  const handleTypeOpen = () => setTypeOpen(true);
+  const handleTypeClose = () => setTypeOpen(false);
+
+  const handleTypeSubmit = async (event) => {
+    event.preventDefault();
+    try {
+      const formData = new FormData();
+      formData.append("occasion", selectedOccasion.id);
+      formData.append("name", typevalue);
+
+      const response = await requestApi("POST", "/api/structure/type", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      if (response.success) {
+        fetchTypes(selectedOccasion.id);
+        notifySuccess("Type Added Successfully");
+        setTypeOpen(false);
+      }
+    } catch (error) {
+      notifyError("Type Failed to Add");
+    }
+    setTypeOpen(false);
+  };
+
   // navigate
   const handleNavigate = (path) => {
     navigate(path);
@@ -429,16 +501,32 @@ function AddStocks({ text }) {
 
   const handleSelectColor = (color) => {
     setSelectedColor(color);
+    setSelectedSize(null);
     fetchSizes(color.id);
+    setShowColors(false);
+    setShowSizes(true);
   };
 
+  const handleSelectSize = (size) => {
+    setSelectedSize(size);
+    setSelectedOccasion(null);
+    fetchOccasions(size.id);
+    setShowSizes(false);
+    setShowOccasions(true);
+  };
 
-  // size and quantity
-  const handleSizeQuantity = (sizeId, value) => {
-    setSizeQuantities((prevQuantity) => ({
-      ...prevQuantity,
-      [sizeId]: value,
-    }));
+  const handleSelectOccasion = (occasion) => {
+    setSelectedOccasion(occasion);
+    setSelectedType(null);
+    fetchTypes(occasion.id);
+    setShowOccasions(false);
+    setShowTypes(true);
+  };
+
+  const handleSelectType = (type) => {
+    setSelectedType(type);
+    setShowTypes(false);
+    setShowPricing(true);
   };
 
   const filterData = (data) => {
@@ -465,60 +553,54 @@ function AddStocks({ text }) {
     const value = e.target.value;
     setMrp(value);
   };
-  // reset size
-  const resetSizeQuantities = () => {
-    const initialQuantity = {};
-    sizes.forEach((size) => {
-      initialQuantity[size.id] = "";
-    });
-    setSizeQuantities(initialQuantity);
-  };
+  
   // refresh data.
   const handleRefresh = () => {
     setSellingPrice("");
     setMrp("");
     setBill("");
-    resetSizeQuantities();
-    // setSelectedModel(null);
-    // setSelectedColor(null);
+    setQuantity("");
+    setShowPricing(false);
   };
 
   const handleGenerate = async () => {
-    const sizeIds = Object.keys(sizeQuantities).map((sizeId) =>
-      parseInt(sizeId)
-    );
-    const quantities = Object.values(sizeQuantities).map((quantity) =>
-      parseInt(quantity)
-    );
-
-    const data = {
-      bill_number: parseInt(bill),
-      category: selectedCategory.id,
-      item_name: selectedItemName.id,
-      sub_category: selectedSubCategory.id,
-      brand: selectedBrand.id,
-      model: selectedModel.id,
-      color: selectedColor.id,
-      selling_price: parseInt(sellingprice),
-      purchasing_price: parseInt(purchaseprice),
-      mrp: parseInt(mrp),
-      size: sizeIds,
-      quantity: quantities,
-
-      name: [
-        selectedCategory.name,
-        selectedItemName.name,
-        selectedSubCategory.name,
-        selectedBrand.name,
-      ].join("-"),
-    };
-    console.log(data);
-
     try {
-      const response = await requestApi("POST", "/api/stock/stock", data, {});
+      const parsedQty = parseInt(quantity, 10);
+      if (!parsedQty || parsedQty <= 0) {
+        notifyError("Please enter a valid quantity.");
+        return;
+      }
+
+      const bodyData = {
+        bill_number: bill,
+        category: selectedCategory.id,
+        item_name: selectedItemName.id,
+        sub_category: selectedSubCategory.id,
+        brand: selectedBrand.id,
+        model: selectedModel.id,
+        color: selectedColor.id,
+        size: [selectedSize.id],
+        occasion: selectedOccasion.id,
+        type: selectedType.id,
+        quantity: [parsedQty],
+        name: [
+          selectedCategory.name,
+          selectedItemName.name,
+          selectedSubCategory.name,
+          selectedBrand.name,
+        ].join("-"),
+        purchasing_price: purchaseprice,
+        selling_price: sellingprice,
+        mrp: mrp,
+        location: 1,
+        user_id: 1,
+      };
+
+      console.log(bodyData);
+
+      const response = await requestApi("POST", "/api/stock/stock", bodyData, {});
       if (response.success) {
         notifySuccess("Stock Added Successfull");
-        
       } else {
         notifyError("Stock Failed to Add");
       }
@@ -599,92 +681,23 @@ function AddStocks({ text }) {
 
   const fetchSizes = async (colorId) => {
     try {
-      const response = await requestApi(
-        "GET",
-        `/api/structure/size?color=${colorId}`,
-        {}
-      );
-      if (response.success) {
-        setSizes(response.data);
-        const initialQuantity = {};
-        response.data.forEach((size) => {
-          initialQuantity[size.id] = "";
-        });
-        setSizeQuantities(initialQuantity);
-      }
+      const response = await requestApi("GET", `/api/structure/size?color=${colorId}`, {});
+      if (response.success) setSizes(response.data);
     } catch (error) {}
   };
 
-  const sizeInputs = () => {
-    return sizes.map((size) => (
-      <div className="sizeandquantity" key={size.id}>
-        <label>{size.name} :</label>
-        <input
-          className="input_box-1"
-          type="number"
-          value={sizeQuantities[size.id]}
-          onChange={(e) => handleSizeQuantity(size.id, e.target.value)}
-          // size="small"
-        />
-        <div className="">
-          <EditIcon
-            style={{
-              color: "var(--button)",
-              cursor: "pointer",
-            }}
-            onClick={() => handleSizeEdit(size.id, size.name)}
-          />
-        </div>
-        <div className="">
-          <DeleteIcon
-            style={{
-              color: "var(--button)",
-              cursor: "pointer",
-            }}
-            onClick={() => handleSizeDelete(size.id, size.name)}
-          />
-        </div>
-        <Modal
-          open={editModalSizeOpen}
-          onClose={handleEditModalSizeClose}
-          aria-labelledby="modal-modal-title"
-          aria-describedby="modal-modal-description"
-        >
-          <div
-            style={{
-              position: "absolute",
-              width: "60%",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              backgroundColor: "var(--background-1)",
-              boxShadow: 24,
-              padding: "30px 60px",
-              display: "flex",
-              flexDirection: "column",
-              color: "var(--text)",
-              gap: "10px",
-            }}
-          >
-            <h2>Edit Size</h2>
-            <InputBox
-              label="Category Name"
-              value={editSizeName}
-              size="small"
-              sx={{ width: "100%" }}
-              onChange={handleNameSizeChange}
-            />
-            <button
-              className="button-in-dialog"
-              variant="contained"
-              onClick={handleUpdateSizeCategory}
-            >
-              SUBMIT
-            </button>
-          </div>
-        </Modal>
-      </div>
-    ));
+  const fetchOccasions = async (sizeId) => {
+    try {
+      const response = await requestApi("GET", `/api/structure/occasion?size=${sizeId}`, {});
+      if (response.success) setOccasions(response.data);
+    } catch (error) {}
+  };
+
+  const fetchTypes = async (occasionId) => {
+    try {
+      const response = await requestApi("GET", `/api/structure/type?occasion=${occasionId}`, {});
+      if (response.success) setTypes(response.data);
+    } catch (error) {}
   };
 
 
@@ -1092,6 +1105,74 @@ function AddStocks({ text }) {
     } catch (error) {
       console.error("Error deleting Size:", error);
       notifyError(`Size "${name}" deleted failed`);
+    }
+  };
+
+  // CRUD Occasion
+  const handleOccasionEdit = (id, name) => {
+    setSelectedEditOccasion({ id, name });
+    setEditedOccasionName(name);
+    setEditModalOccasionOpen(true);
+  };
+  const handleEditModalOccasionClose = () => {
+    setEditModalOccasionOpen(false);
+    setSelectedEditOccasion(null);
+    setEditedOccasionName("");
+  };
+  const handleUpdateOccasionCategory = async () => {
+    try {
+      const response = await requestApi("PUT", `/api/structure/occasion`, { id: selectedEditOccasion.id, name: editOccasionName });
+      const updated = { ...selectedEditOccasion, name: editOccasionName };
+      setOccasions(occasions.map((o) => o.id === selectedEditOccasion.id ? updated : o));
+      notifySuccess(`Occasion updated successfully`);
+      handleEditModalOccasionClose();
+    } catch (error) {
+      notifyError("Error updating Occasion");
+    }
+  };
+  const handleOccasionDelete = async (id, name) => {
+    if (window.confirm(`Are you sure you want to delete occasion "${name}"?`)) {
+      try {
+        await requestApi("DELETE", `/api/structure/occasion?id=${id}`);
+        setOccasions(occasions.filter((o) => o.id !== id));
+        notifySuccess(`Occasion "${name}" deleted successfully`);
+      } catch (error) {
+        notifyError("Error deleting Occasion");
+      }
+    }
+  };
+
+  // CRUD Type
+  const handleTypeEdit = (id, name) => {
+    setSelectedEditType({ id, name });
+    setEditedTypeName(name);
+    setEditModalTypeOpen(true);
+  };
+  const handleEditModalTypeClose = () => {
+    setEditModalTypeOpen(false);
+    setSelectedEditType(null);
+    setEditedTypeName("");
+  };
+  const handleUpdateTypeCategory = async () => {
+    try {
+      const response = await requestApi("PUT", `/api/structure/type`, { id: selectedEditType.id, name: editTypeName });
+      const updated = { ...selectedEditType, name: editTypeName };
+      setTypes(types.map((t) => t.id === selectedEditType.id ? updated : t));
+      notifySuccess(`Type updated successfully`);
+      handleEditModalTypeClose();
+    } catch (error) {
+      notifyError("Error updating Type");
+    }
+  };
+  const handleTypeDelete = async (id, name) => {
+    if (window.confirm(`Are you sure you want to delete type "${name}"?`)) {
+      try {
+        await requestApi("DELETE", `/api/structure/type?id=${id}`);
+        setTypes(types.filter((t) => t.id !== id));
+        notifySuccess(`Type "${name}" deleted successfully`);
+      } catch (error) {
+        notifyError("Error deleting Type");
+      }
     }
   };
 
@@ -1865,114 +1946,143 @@ function AddStocks({ text }) {
                     </div>
                   )}
 
-                  {selectedColor && (
-                    // Last page for size and price
-                    <div className="last">
-                      <ArrowBackIcon
-                        sx={{ cursor: "pointer", margin: 1, color: "#178a84" }}
-                        onClick={() => {
-                          setSelectedColor(null);
-                          setSellingPrice("");
-                          setMrp("");
-                          setBill("");
-                          resetSizeQuantities();
-                        }}
-                      />
-                      <div className="part_for_size">
-                        <div className="count-size-quantity-box">
-                        <div className="name-and-icons">
-                            <b>Size and Quantity</b>
-                              <AddBoxRoundedIcon
-                                sx={{ fontSize: 30, color: "var(--button)" }}
-                                onClick={handleSizeOpen}
-                              />{" "}
+                  {showSizes && (
+                    <div className="card1">
+                      <div className="name-and-icon">
+                        <ArrowBackIcon sx={{ cursor: "pointer", color: "#178a84" }} onClick={() => { setShowSizes(false); setSelectedColor(null); setSelectedSize(null); }} />
+                        <h2><center>Select a Size</center></h2>
+                        <AddBoxRoundedIcon sx={{ fontSize: 35, color: "var(--button)" }} className="add-icon" onClick={handleSizeOpen} />
+                      </div>
+                      <div className="card">
+                        <div className="flex-container">
+                          {filterData(sizes).map((size) => (
+                            <div key={size.id} className="c-cards">
+                              <div className="item-card">
+                                <div className="category-info names" onClick={() => handleSelectSize(size)}>{size.name}</div>
+                                <div className="edit-delete">
+                                  <div className="ed-icon">
+                                    <div className="edit-delete-icon"><EditIcon style={{ color: "#ffff", cursor: "pointer" }} onClick={() => handleSizeEdit(size.id, size.name)} /></div>
+                                    <div className="edit-delete-icon"><DeleteIcon style={{ color: "#ffff", cursor: "pointer" }} onClick={() => handleSizeDelete(size.id, size.name)} /></div>
+                                  </div>
+                                </div>
+                              </div>
                             </div>
-                          <div className="size-and-quantity">
-                            
-
-                            {sizeInputs()}
+                          ))}
+                        </div>
+                        <Modal open={editModalSizeOpen} onClose={handleEditModalSizeClose}>
+                          <div style={{ position: "absolute", width: "60%", top: "50%", left: "50%", transform: "translate(-50%, -50%)", backgroundColor: "var(--background-1)", boxShadow: 24, padding: "30px 60px", display: "flex", flexDirection: "column", color: "var(--text)", gap: "10px" }}>
+                            <h2>Edit Size</h2>
+                            <InputBox label="Size Name" value={editSizeName} size="small" sx={{ width: "100%" }} onChange={handleNameSizeChange} />
+                            <button className="button-in-dialog" onClick={handleUpdateSizeCategory}>SUBMIT</button>
                           </div>
+                        </Modal>
+                      </div>
+                    </div>
+                  )}
+
+                  {showOccasions && (
+                    <div className="card1">
+                      <div className="name-and-icon">
+                        <ArrowBackIcon sx={{ cursor: "pointer", color: "#178a84" }} onClick={() => { setShowOccasions(false); setShowSizes(true); setSelectedSize(null); setSelectedOccasion(null); }} />
+                        <h2><center>Select an Occasion</center></h2>
+                        <AddBoxRoundedIcon sx={{ fontSize: 35, color: "var(--button)" }} className="add-icon" onClick={handleOccasionOpen} />
+                      </div>
+                      <div className="card">
+                        <div className="flex-container">
+                          {filterData(occasions).map((occ) => (
+                            <div key={occ.id} className="c-cards">
+                              <div className="item-card">
+                                <div className="category-info names" onClick={() => handleSelectOccasion(occ)}>{occ.name}</div>
+                                <div className="edit-delete">
+                                  <div className="ed-icon">
+                                    <div className="edit-delete-icon"><EditIcon style={{ color: "#ffff", cursor: "pointer" }} onClick={() => handleOccasionEdit(occ.id, occ.name)} /></div>
+                                    <div className="edit-delete-icon"><DeleteIcon style={{ color: "#ffff", cursor: "pointer" }} onClick={() => handleOccasionDelete(occ.id, occ.name)} /></div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
                         </div>
                       </div>
+                    </div>
+                  )}
 
-                      <div className="part_for_price">
-                        <div className="price-boxes">
-                          <div className="centering">
-                            <div className="input-container">
-                              <InputBox
-                                label="S.No"
-                                className="input_box"
-                                type="number"
-                                id="bill"
-                                value={bill}
-                                size="small"
-                                sx={{ width: "100%" }}
-                                onChange={(e) => setBill(e.target.value)}
-                                required
-                              />
+                  {showTypes && (
+                    <div className="card1">
+                      <div className="name-and-icon">
+                        <ArrowBackIcon sx={{ cursor: "pointer", color: "#178a84" }} onClick={() => { setShowTypes(false); setShowOccasions(true); setSelectedOccasion(null); setSelectedType(null); }} />
+                        <h2><center>Select a Type</center></h2>
+                        <AddBoxRoundedIcon sx={{ fontSize: 35, color: "var(--button)" }} className="add-icon" onClick={handleTypeOpen} />
+                      </div>
+                      <div className="card">
+                        <div className="flex-container">
+                          {filterData(types).map((typ) => (
+                            <div key={typ.id} className="c-cards">
+                              <div className="item-card">
+                                <div className="category-info names" onClick={() => handleSelectType(typ)}>{typ.name}</div>
+                                <div className="edit-delete">
+                                  <div className="ed-icon">
+                                    <div className="edit-delete-icon"><EditIcon style={{ color: "#ffff", cursor: "pointer" }} onClick={() => handleTypeEdit(typ.id, typ.name)} /></div>
+                                    <div className="edit-delete-icon"><DeleteIcon style={{ color: "#ffff", cursor: "pointer" }} onClick={() => handleTypeDelete(typ.id, typ.name)} /></div>
+                                  </div>
+                                </div>
+                              </div>
                             </div>
-                            <div className="input-container">
-                              <InputBox
-                                label="Selling Price"
-                                className="input_box"
-                                type="number"
-                                id="sellingprice"
-                                size="small"
-                                value={sellingprice}
-                                sx={{ width: "100%" }}
-                                onChange={handleSellingPriceChange}
-                                required
-                              />
-                            </div>
-                            <div className="input-container">
-                              <InputBox
-                                label="MRP"
-                                className="input_box"
-                                type="number"
-                                id="mrp"
-                                value={mrp}
-                                required
-                                sx={{ width: "100%" }}
-                                onChange={handleMrpPriceChange}
-                                size="small"
-                                
-                              />
-                            </div>
-                            <div className="input-container">
-                              <InputBox
-                                label="Purchase Price "
-                                className="input_box"
-                                type="number"
-                                id="purchaseprice"
-                                size="small"
-                                value={purchaseprice}
-                                sx={{ width: "100%" }}
-                                onChange={(e) =>
-                                  handleNumberChange(e, setPurchasePrice)
-                                }
-                              />
-                            </div>
-                            <div className="buttons-in-line">
-                              <button
-                                className="generate_button"
-                                onClick={() => {
-                                  handleGenerate();
-                                  handleNavigate("/productdashboard");
-                                }}
-                              >
-                                Generate +
-                              </button>
-                              <button
-                                className="generate_button"
-                                onClick={() => {
-                                  handleGenerate();
-                                  handleRefresh();
-                                }}
-                              >
-                                Add other
-                              </button>
-                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+
+                  {showPricing && (
+                    <div className="pricing-page">
+                      <div className="pricing-header">
+                        <ArrowBackIcon
+                          sx={{ cursor: "pointer", color: "#178a84", fontSize: 28 }}
+                          onClick={() => { setShowPricing(false); setShowTypes(true); setSelectedType(null); }}
+                        />
+                        <h2 className="pricing-title">Pricing Details</h2>
+                        <div style={{ width: 28 }} />
+                      </div>
+
+                      <div className="pricing-card">
+                        <div className="pricing-grid">
+                          <div className="pricing-field">
+                            <label className="pricing-label">S.No</label>
+                            <InputBox type="number" id="bill" value={bill} size="small" sx={{ width: "100%" }} onChange={(e) => setBill(e.target.value)} required />
                           </div>
+                          <div className="pricing-field">
+                            <label className="pricing-label">Quantity</label>
+                            <InputBox type="number" id="quantity" value={quantity} size="small" sx={{ width: "100%" }} onChange={(e) => setQuantity(e.target.value)} required />
+                          </div>
+                          <div className="pricing-field">
+                            <label className="pricing-label">Selling Price</label>
+                            <InputBox type="number" id="sellingprice" size="small" value={sellingprice} sx={{ width: "100%" }} onChange={handleSellingPriceChange} required />
+                          </div>
+                          <div className="pricing-field">
+                            <label className="pricing-label">MRP</label>
+                            <InputBox type="number" id="mrp" value={mrp} required sx={{ width: "100%" }} onChange={handleMrpPriceChange} size="small" />
+                          </div>
+                          <div className="pricing-field">
+                            <label className="pricing-label">Purchase Price</label>
+                            <InputBox type="number" id="purchaseprice" size="small" value={purchaseprice} sx={{ width: "100%" }} onChange={(e) => handleNumberChange(e, setPurchasePrice)} />
+                          </div>
+                        </div>
+
+                        <div className="pricing-actions">
+                          <button
+                            className="action-btn action-btn--generate"
+                            onClick={() => { handleGenerate(); handleNavigate("/productdashboard"); }}
+                          >
+                            ✚ Generate
+                          </button>
+                          <button
+                            className="action-btn action-btn--other"
+                            onClick={() => { handleGenerate(); handleRefresh(); }}
+                          >
+                            + Add other
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -2024,48 +2134,11 @@ function AddStocks({ text }) {
                   size="small"
                 />
                 <br />
-                <label className="drop-container">
-                  <span class="drop-title">Drop files here</span>
+               
+            
 
-                  <div
-                    style={{
-                      border: "1px solid var(--button)",
-                      borderRadius: "5px",
-                    }}
-                  >
-                    <input
-                      type="file"
-                      id="image"
-                      name="image"
-                      accept="image/*"
-                      onChange={handleCategoryImage}
-                    />
-                  </div>
-                </label>
-                <br />
-                <h1 className="or-color">(or)</h1>
-                <br />
-
-                <label htmlFor="image" className="custom-file-upload">
-                  &nbsp;Take Picture:
-                </label>
-                <br />
-                <div
-                  style={{
-                    border: "1px solid var(--button)",
-                    borderRadius: "5px",
-                  }}
-                >
-                  <input
-                    type="file"
-                    id="image"
-                    name="image"
-                    accept="image/*"
-                    capture="environment"
-                    onChange={handleCategoryImage}
-                  />
-                  <br />
-                </div>
+             
+             
 
                 <div className="float-right">
                   <button
@@ -2124,48 +2197,10 @@ function AddStocks({ text }) {
                   size="small"
                 />
                 <br />
-                <label className="drop-container">
-                  <span class="drop-title">Drop files here</span>
-
-                  <div
-                    style={{
-                      border: "1px solid var(--button)",
-                      borderRadius: "5px",
-                    }}
-                  >
-                    <input
-                      type="file"
-                      id="image"
-                      name="image"
-                      accept="image/*"
-                      onChange={handleItemImage}
-                    />
-                  </div>
-                </label>
-                <br />
-                <h5 className="or-color">(or)</h5>
-                <br />
-                <label htmlFor="image" className="custom-file-upload">
-                  &nbsp;Take Picture:
-                </label>
-                <br />
-                <div
-                  style={{
-                    border: "1px solid var(--button)",
-                    borderRadius: "5px",
-                  }}
-                >
-                  <input
-                    type="file"
-                    id="image"
-                    name="image"
-                    accept="image/*"
-                    capture="environment"
-                    onChange={handleItemImage}
-                  />
-                  <br />
-                </div>
-                <br />
+             
+          
+             
+             
                 <div className="float-right">
                   <button
                     className="add-button-dialog"
@@ -2223,48 +2258,10 @@ function AddStocks({ text }) {
                   size="small"
                 />
                 <br />
-                <label className="drop-container">
-                  <span class="drop-title">Drop files here</span>
-
-                  <div
-                    style={{
-                      border: "1px solid var(--button)",
-                      borderRadius: "5px",
-                    }}
-                  >
-                    <input
-                      type="file"
-                      id="image"
-                      name="image"
-                      accept="image/*"
-                      onChange={handleSubImage}
-                    />
-                  </div>
-                </label>
-                <br />
-                <h5 className="or-color">(or)</h5>
-                <br />
-                <label htmlFor="image" className="custom-file-upload">
-                  &nbsp;Take Picture:
-                </label>
-                <br />
-                <div
-                  style={{
-                    border: "1px solid var(--button)",
-                    borderRadius: "5px",
-                  }}
-                >
-                  <input
-                    type="file"
-                    id="image"
-                    name="image"
-                    accept="image/*"
-                    capture="environment"
-                    onChange={handleSubImage}
-                  />
-                  <br />
-                </div>
-                <br />
+              
+              
+              
+              
                 <div className="float-right">
                   <button
                     className="add-button-dialog"
@@ -2322,47 +2319,9 @@ function AddStocks({ text }) {
                   size="small"
                 />
                 <br />
-                <label className="drop-container">
-                  <span class="drop-title">Drop files here</span>
-
-                  <div
-                    style={{
-                      border: "1px solid var(--button)",
-                      borderRadius: "5px",
-                    }}
-                  >
-                    <input
-                      type="file"
-                      id="image"
-                      name="image"
-                      accept="image/*"
-                      onChange={handleBrandImage}
-                    />
-                  </div>
-                </label>
-                <br />
-                <h5 className="or-color">(or)</h5>
-                <br />
-                <label htmlFor="image" className="custom-file-upload">
-                  &nbsp;Take Picture:
-                </label>
-                <br />
-                <div
-                  style={{
-                    border: "1px solid var(--button)",
-                    borderRadius: "5px",
-                  }}
-                >
-                  <input
-                    type="file"
-                    id="image"
-                    name="image"
-                    accept="image/*"
-                    capture="environment"
-                    onChange={handleBrandImage}
-                  />
-                  <br />
-                </div>
+              
+             
+            
                 <br />
                 <div className="float-right">
                   <button
@@ -2548,6 +2507,63 @@ function AddStocks({ text }) {
           </form>
         </Dialog>
       </div>
+      {/* occasion dialog */}
+      <div>
+        <Dialog fullWidth open={occasionopen} onClose={handleOccasionClose} PaperProps={{ style: { padding: "10px", backgroundColor: "var(--background-1)" } }}>
+          <form onSubmit={handleOccasionSubmit}>
+            <DialogTitle style={{ textAlign: "center", color: "var(--text)" }}><h2>Add Occasion</h2></DialogTitle>
+            <DialogContent>
+              <br />
+              <InputBox type="text" label="Add Occasion" value={occasionvalue} onChange={(e) => setOccasionValue(e.target.value)} required sx={{ width: "100%" }} size="small" />
+              <div className="float-right" style={{ marginTop: "20px" }}>
+                <button className="add-button-dialog" onClick={handleOccasionClose} type="button">CANCEL</button>
+                <button className="add-button-dialog" type="submit">ADD</button>
+              </div>
+            </DialogContent>
+          </form>
+        </Dialog>
+      </div>
+
+      {/* type dialog */}
+      <div>
+        <Dialog fullWidth open={typeopen} onClose={handleTypeClose} PaperProps={{ style: { padding: "10px", backgroundColor: "var(--background-1)" } }}>
+          <form onSubmit={handleTypeSubmit}>
+            <DialogTitle style={{ textAlign: "center", color: "var(--text)" }}><h2>Add Type</h2></DialogTitle>
+            <DialogContent>
+              <br />
+              <InputBox type="text" label="Add Type" value={typevalue} onChange={(e) => setTypeValue(e.target.value)} required sx={{ width: "100%" }} size="small" />
+              <div className="float-right" style={{ marginTop: "20px" }}>
+                <button className="add-button-dialog" onClick={handleTypeClose} type="button">CANCEL</button>
+                <button className="add-button-dialog" type="submit">ADD</button>
+              </div>
+            </DialogContent>
+          </form>
+        </Dialog>
+      </div>
+
+      {/* Occasion Edit Modal */}
+      <Modal open={editModalOccasionOpen} onClose={handleEditModalOccasionClose}>
+        <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: 400, backgroundColor: "var(--background-1)", border: "2px solid #000", boxShadow: 24, padding: "20px", borderRadius: "10px" }}>
+          <h2 style={{ textAlign: "center", color: "var(--text)", marginBottom: "20px" }}>Edit Occasion</h2>
+          <InputBox label="Edit Occasion Name" value={editOccasionName} onChange={(e) => setEditedOccasionName(e.target.value)} size="small" fullWidth />
+          <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "20px" }}>
+            <button className="add-button-dialog" onClick={handleUpdateOccasionCategory}>UPDATE</button>
+            <button className="add-button-dialog" onClick={handleEditModalOccasionClose} style={{ marginLeft: "10px" }} type="button">CANCEL</button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Type Edit Modal */}
+      <Modal open={editModalTypeOpen} onClose={handleEditModalTypeClose}>
+        <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: 400, backgroundColor: "var(--background-1)", border: "2px solid #000", boxShadow: 24, padding: "20px", borderRadius: "10px" }}>
+          <h2 style={{ textAlign: "center", color: "var(--text)", marginBottom: "20px" }}>Edit Type</h2>
+          <InputBox label="Edit Type Name" value={editTypeName} onChange={(e) => setEditedTypeName(e.target.value)} size="small" fullWidth />
+          <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "20px" }}>
+            <button className="add-button-dialog" onClick={handleUpdateTypeCategory}>UPDATE</button>
+            <button className="add-button-dialog" onClick={handleEditModalTypeClose} style={{ marginLeft: "10px" }} type="button">CANCEL</button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

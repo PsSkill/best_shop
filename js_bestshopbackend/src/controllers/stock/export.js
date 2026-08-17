@@ -19,7 +19,9 @@ exports.get_csv = async (req, res) => {
         b.name AS BRAND, 
         si.name AS SIZES, 
         m.name AS "STYLE MODE", 
-        co.name AS COLOUR
+        co.name AS COLOUR,
+        oc.occasion_name AS OCCASION,
+        ty.type_name AS TYPE
     FROM 
         stock s
     INNER JOIN 
@@ -36,6 +38,10 @@ exports.get_csv = async (req, res) => {
         model m ON s.model = m.id
     INNER JOIN 
         color co ON s.color = co.id
+    LEFT JOIN
+        occasion oc ON s.occasion = oc.id
+    LEFT JOIN
+        type ty ON s.type = ty.id
     WHERE s.date = ? AND s.shop_location = ?`;
 
     const query_params = [date, shop_location];

@@ -7,6 +7,8 @@ const brand = require("../../controllers/structure/brand");
 const model = require("../../controllers/structure/model");
 const color = require("../../controllers/structure/color");
 const size = require("../../controllers/structure/size");
+const occasion = require("../../controllers/structure/occasion");
+const type = require("../../controllers/structure/type");
 const image_uploader_middleware = require("../../middleware/image_uploader");
 
 const router = express.Router();
@@ -49,5 +51,15 @@ router.get("/size", size.get_size);
 router.post("/size", size.post_size);
 router.put("/size", size.update_size);
 router.delete("/size", size.delete_size);
+
+router.get("/occasion", occasion.get_occasion);
+router.post("/occasion", occasion.post_occasion);
+router.put("/occasion", occasion.update_occasion);
+router.delete("/occasion", occasion.delete_occasion);
+
+router.get("/type", type.get_type);
+router.post("/type", type.post_type);
+router.put("/type", type.update_type);
+router.delete("/type", type.delete_type);
 
 module.exports = router;

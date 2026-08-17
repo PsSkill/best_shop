@@ -53,6 +53,8 @@ exports.post_stocks = async (req, res) => {
     model,
     color,
     size,
+    occasion,
+    type,
     quantity,
     name,
     purchasing_price,
@@ -113,6 +115,8 @@ exports.post_stocks = async (req, res) => {
           model,
           color,
           current_size,
+          occasion,
+          type,
           current_quantity, // quantity
           name,
           purchasing_price,
@@ -136,6 +140,8 @@ exports.post_stocks = async (req, res) => {
           model,
           color,
           current_size,
+          occasion,
+          type,
           current_quantity, // quantity
           current_quantity, // sell_quantity
           name,
@@ -149,7 +155,7 @@ exports.post_stocks = async (req, res) => {
 
     if (value_sets.length > 0) {
       const query =
-        "INSERT INTO stock (user, shop_location, bill_number, date, time, year, category, item_name, sub_category, brand, model, color, size, quantity, name, purchasing_price, selling_price, mrp, total_price) VALUES ?";
+        "INSERT INTO stock (user, shop_location, bill_number, date, time, year, category, item_name, sub_category, brand, model, color, size, occasion, type, quantity, name, purchasing_price, selling_price, mrp, total_price) VALUES ?";
       await post_query_database(query, [value_sets]);
 
       // const test_query =
