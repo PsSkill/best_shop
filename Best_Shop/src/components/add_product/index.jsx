@@ -17,6 +17,7 @@ import AddBoxRoundedIcon from "@mui/icons-material/AddBoxRounded";
 import { Modal } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import CustomEditSelect from "./CustomEditSelect";
 
 function AddStocks({ text }) {
 
@@ -118,6 +119,53 @@ function AddStocks({ text }) {
   const [occasionvalue, setOccasionValue] = useState("");
   const [typevalue, setTypeValue] = useState("");
 
+  const [masterCategories, setMasterCategories] = useState([]);
+  const [masterBrands, setMasterBrands] = useState([]);
+  const [masterColors, setMasterColors] = useState([]);
+  const [masterItemNames, setMasterItemNames] = useState([]);
+  const [masterModels, setMasterModels] = useState([]);
+  const [masterSizes, setMasterSizes] = useState([]); 
+  const [masterOccasions, setMasterOccasions] = useState([]);
+  const [masterSubCategories, setMasterSubCategories] = useState([]);
+  const [masterTypes, setMasterTypes] = useState([]);
+
+  const fetchMasterData = async () => {
+    try {
+      const catRes = await requestApi("GET", "/api/master/category", {});
+      if (catRes.success) setMasterCategories(catRes.data);
+
+      const brandRes = await requestApi("GET", "/api/master/brand", {});
+      if (brandRes.success) setMasterBrands(brandRes.data);
+
+      const colorRes = await requestApi("GET", "/api/master/color", {});
+      if (colorRes.success) setMasterColors(colorRes.data);
+
+      const itemRes = await requestApi("GET", "/api/master/item-name", {});
+      if (itemRes.success) setMasterItemNames(itemRes.data);
+
+      const modelRes = await requestApi("GET", "/api/master/model", {});
+      if (modelRes.success) setMasterModels(modelRes.data);
+
+      const sizeRes = await requestApi("GET", "/api/master/size", {});
+      if (sizeRes.success) setMasterSizes(sizeRes.data); 
+
+      const occasionRes = await requestApi("GET", "/api/master/occasion", {});
+      if (occasionRes.success) setMasterOccasions(occasionRes.data);
+
+      const subRes = await requestApi("GET", "/api/master/sub-category", {});
+      if (subRes.success) setMasterSubCategories(subRes.data);
+
+      const typeRes = await requestApi("GET", "/api/master/type", {});
+      if (typeRes.success) setMasterTypes(typeRes.data);
+    } catch (err) {
+      console.error("Error fetching master data:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchMasterData();
+  }, []);
+
   // dialogs
   const [categoryopen, setCategoryOpen] = useState(false);
   const [itemopen, setItemOpen] = useState(false);
@@ -130,9 +178,13 @@ function AddStocks({ text }) {
   const [typeopen, setTypeOpen] = useState(false);
   // category dialog
   const handleCategoryOpen = () => {
+    setCategoryValue("");
+    setCategoryImage(null);
     setCategoryOpen(true);
   };
   const handleCategoryClose = () => {
+    setCategoryValue("");
+    setCategoryImage(null);
     setCategoryOpen(false);
   };
 
@@ -156,21 +208,31 @@ function AddStocks({ text }) {
       if (response.ok) {
         notifySuccess("Category Added Successfull");
         fetchCategories();
+        setCategoryValue("");
+        setCategoryImage(null);
         setCategoryOpen(false);
       } else {
+        setCategoryValue("");
+        setCategoryImage(null);
         setCategoryOpen(false);
       }
     } catch (error) {
       notifyError("Category Failed Added");
+      setCategoryValue("");
+      setCategoryImage(null);
       setCategoryOpen(false);
     }
   };
 
   // item dialog
   const handleItemOpen = () => {
+    setItemValue("");
+    setItemImage(null);
     setItemOpen(true);
   };
   const handleItemClose = () => {
+    setItemValue("");
+    setItemImage(null);
     setItemOpen(false);
   };
 
@@ -193,21 +255,31 @@ function AddStocks({ text }) {
       if (response.ok) {
         fetchItemNames(selectedCategory.id);
         notifySuccess("Item-Name Added Successfull");
+        setItemValue("");
+        setItemImage(null);
         setItemOpen(false);
       } else {
+        setItemValue("");
+        setItemImage(null);
         setItemOpen(false);
       }
     } catch (error) {
       notifyError("Item-Name Failed to Add");
+      setItemValue("");
+      setItemImage(null);
+      setItemOpen(false);
     }
-    setItemOpen(false);
   };
 
   // sub dialog
   const handleSubOpen = () => {
+    setSubValue("");
+    setSubImage(null);
     setSubOpen(true);
   };
   const handleSubClose = () => {
+    setSubValue("");
+    setSubImage(null);
     setSubOpen(false);
   };
 
@@ -231,18 +303,31 @@ function AddStocks({ text }) {
       if (response.ok) {
         fetchSubCategories(selectedItemName.id);
         notifySuccess("Sub-Category Addded Successfull");
+        setSubValue("");
+        setSubImage(null);
+        setSubOpen(false);
+      } else {
+        setSubValue("");
+        setSubImage(null);
         setSubOpen(false);
       }
     } catch (error) {
       notifyError("Sub-Category Failed to Add");
+      setSubValue("");
+      setSubImage(null);
+      setSubOpen(false);
     }
   };
 
   // brand dialog
   const handleBrandOpen = () => {
+    setBrandValue("");
+    setBrandImage(null);
     setBrandOpen(true);
   };
   const handleBrandClose = () => {
+    setBrandValue("");
+    setBrandImage(null);
     setBrandOpen(false);
   };
 
@@ -264,18 +349,28 @@ function AddStocks({ text }) {
       if (response.ok) {
         fetchBrands(selectedSubCategory.id);
         notifySuccess("Brand Added Successfull");
+        setBrandValue("");
+        setBrandImage(null);
+        setBrandOpen(false);
+      } else {
+        setBrandValue("");
+        setBrandImage(null);
         setBrandOpen(false);
       }
     } catch (error) {
       notifyError("Brand Failed to Add");
+      setBrandValue("");
+      setBrandImage(null);
+      setBrandOpen(false);
     }
-    setBrandOpen(false);
   };
 
   const handleModelOpen = () => {
+    setModelValue("");
     setModelOpen(true);
   };
   const handleModelClose = () => {
+    setModelValue("");
     setModelOpen(false);
   };
 
@@ -285,7 +380,6 @@ function AddStocks({ text }) {
       const formData = new FormData();
       formData.append("brand", selectedBrand.id);
       formData.append("name", modelvalue);
-    
 
       const response = await requestApi(
         "POST",
@@ -301,19 +395,25 @@ function AddStocks({ text }) {
       if (response.success) {
         fetchModels(selectedBrand.id);
         notifySuccess("Model Added Successfull");
+        setModelValue("");
+        setModelOpen(false);
       } else {
+        setModelValue("");
         setModelOpen(false);
       }
     } catch (error) {
       notifyError("Model Failed to Add");
+      setModelValue("");
+      setModelOpen(false);
     }
-    setModelOpen(false);
   };
 
   const handleColorOpen = () => {
+    setColorValue("");
     setColorOpen(true);
   };
   const handleColorClose = () => {
+    setColorValue("");
     setColorOpen(false);
   };
 
@@ -323,7 +423,6 @@ function AddStocks({ text }) {
       const formData = new FormData();
       formData.append("model", selectedModel.id);
       formData.append("name", colorvalue);
-  
 
       const response = await requestApi(
         "POST",
@@ -339,19 +438,25 @@ function AddStocks({ text }) {
       if (response.success) {
         fetchColors(selectedModel.id);
         notifySuccess("Color Added Successfull");
+        setColorValue("");
+        setColorOpen(false);
       } else {
+        setColorValue("");
         setColorOpen(false);
       }
     } catch (error) {
       notifyError("Color Failed to Add");
+      setColorValue("");
+      setColorOpen(false);
     }
-    setColorOpen(false); 
   };
 
   const handleSizeOpen = () => {
+    setSizeValue("");
     setSizeOpen(true);
   };
   const handleSizeClose = () => {
+    setSizeValue("");
     setSizeOpen(false);
   };
 
@@ -361,7 +466,6 @@ function AddStocks({ text }) {
       const formData = new FormData();
       formData.append("color", selectedColor.id);
       formData.append("name", sizevalue);
-    
 
       const response = await requestApi(
         "POST",
@@ -377,17 +481,27 @@ function AddStocks({ text }) {
       if (response.success) {
         fetchSizes(selectedColor.id);
         notifySuccess("Size Added Successfull");
+        setSizeValue("");
         setSizeOpen(false);
       } else {
+        setSizeValue("");
+        setSizeOpen(false);
       }
     } catch (error) {
       notifyError("Size Failed to Add");
+      setSizeValue("");
+      setSizeOpen(false);
     }
-    setSizeOpen(false); 
   };
 
-  const handleOccasionOpen = () => setOccasionOpen(true);
-  const handleOccasionClose = () => setOccasionOpen(false);
+  const handleOccasionOpen = () => {
+    setOccasionValue("");
+    setOccasionOpen(true);
+  };
+  const handleOccasionClose = () => {
+    setOccasionValue("");
+    setOccasionOpen(false);
+  };
 
   const handleOccasionSubmit = async (event) => {
     event.preventDefault();
@@ -403,16 +517,27 @@ function AddStocks({ text }) {
       if (response.success) {
         fetchOccasions(selectedSize.id);
         notifySuccess("Occasion Added Successfully");
+        setOccasionValue("");
+        setOccasionOpen(false);
+      } else {
+        setOccasionValue("");
         setOccasionOpen(false);
       }
     } catch (error) {
       notifyError("Occasion Failed to Add");
+      setOccasionValue("");
+      setOccasionOpen(false);
     }
-    setOccasionOpen(false);
   };
 
-  const handleTypeOpen = () => setTypeOpen(true);
-  const handleTypeClose = () => setTypeOpen(false);
+  const handleTypeOpen = () => {
+    setTypeValue("");
+    setTypeOpen(true);
+  };
+  const handleTypeClose = () => {
+    setTypeValue("");
+    setTypeOpen(false);
+  };
 
   const handleTypeSubmit = async (event) => {
     event.preventDefault();
@@ -428,12 +553,17 @@ function AddStocks({ text }) {
       if (response.success) {
         fetchTypes(selectedOccasion.id);
         notifySuccess("Type Added Successfully");
+        setTypeValue("");
+        setTypeOpen(false);
+      } else {
+        setTypeValue("");
         setTypeOpen(false);
       }
     } catch (error) {
       notifyError("Type Failed to Add");
+      setTypeValue("");
+      setTypeOpen(false);
     }
-    setTypeOpen(false);
   };
 
   // navigate
@@ -2092,430 +2222,286 @@ function AddStocks({ text }) {
             </div>
           </div>
         </div>
-      </div>
-      {/* category dialog */}
+      </div>      {/* category dialog */}
       <div>
         <Dialog
           fullWidth
+          maxWidth="xs"
           open={categoryopen}
           onClose={handleCategoryClose}
           PaperProps={{
             style: {
-              padding: "20px",
+              padding: "16px 24px",
               backgroundColor: "var(--background-1)",
+              borderRadius: "12px",
             },
           }}
         >
-          <form className="form-dialog" onSubmit={handleCategorySubmit}>
-            <div className="dialog-content">
-              <DialogTitle
-                style={{
-                  textAlign: "center",
-                  color: "var(--text)",
-                }}
-              >
-                <h2>Add Category</h2>
-              </DialogTitle>
-              <DialogContent
-                style={{
-                  fontSize: 10,
-                }}
-              >
-                <br />
-                <InputBox
-                  type="text"
-                  label="Add Category"
-                  id="categoryvalue"
-                  name="category_name"
-                  value={categoryvalue}
-                  onChange={(e) => setCategoryValue(e.target.value)}
-                  required
-                  sx={{ width: "100%" }}
-                  size="small"
-                />
-                <br />
-               
-            
-
-             
-             
-
-                <div className="float-right">
-                  <button
-                    className="add-button-dialog"
-                    onClick={handleCategoryClose}
-                  >
-                    CANCEL
-                  </button>
-                  <button className="add-button-dialog" type="submit">
-                    ADD
-                  </button>
-                </div>
-              </DialogContent>
-            </div>
+          <form onSubmit={handleCategorySubmit} style={{ width: "100%" }}>
+            <DialogTitle style={{ textAlign: "center", color: "var(--text)", padding: "10px 0" }}>
+              <h2 style={{ margin: 0 }}>Add Category</h2>
+            </DialogTitle>
+            <DialogContent style={{ padding: "8px 0" }}>
+              <CustomEditSelect
+                label="Select Category"
+                placeholder="Select Category"
+                value={categoryvalue}
+                onChange={(val) => setCategoryValue(val)}
+                options={masterCategories.map(cat => ({ value: cat.category_name, label: cat.category_name }))}
+              />
+              <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "24px" }}>
+                <button className="add-button-dialog" onClick={handleCategoryClose} type="button">CANCEL</button>
+                <button className="add-button-dialog" type="submit">ADD</button>
+              </div>
+            </DialogContent>
           </form>
         </Dialog>
       </div>
+
       {/* item-name dialog */}
       <div>
         <Dialog
           fullWidth
+          maxWidth="xs"
           open={itemopen}
           onClose={handleItemClose}
           PaperProps={{
             style: {
-              padding: "10px",
+              padding: "16px 24px",
               backgroundColor: "var(--background-1)",
+              borderRadius: "12px",
             },
           }}
         >
-          <form onSubmit={handleItemSubmit}>
-            <div>
-              <DialogTitle
-                style={{
-                  textAlign: "center",
-                  color: "var(--text)",
-                }}
-              >
-                <h2>Add Item</h2>
-              </DialogTitle>
-              <DialogContent
-                style={{
-                  fontSize: 20,
-                }}
-              >
-                <br />
-                <InputBox
-                  type="text"
-                  label="Add Item"
-                  id="itemvalue"
-                  name="item_name"
-                  value={itemvalue}
-                  onChange={(e) => setItemValue(e.target.value)}
-                  required
-                  sx={{ width: "100%" }}
-                  size="small"
-                />
-                <br />
-             
-          
-             
-             
-                <div className="float-right">
-                  <button
-                    className="add-button-dialog"
-                    onClick={handleItemClose}
-                  >
-                    CANCEL
-                  </button>
-                  <button className="add-button-dialog" type="submit">
-                    ADD
-                  </button>
-                </div>
-              </DialogContent>
-            </div>
+          <form onSubmit={handleItemSubmit} style={{ width: "100%" }}>
+            <DialogTitle style={{ textAlign: "center", color: "var(--text)", padding: "10px 0" }}>
+              <h2 style={{ margin: 0 }}>Add Item</h2>
+            </DialogTitle>
+            <DialogContent style={{ padding: "8px 0" }}>
+              <CustomEditSelect
+                label="Select Item"
+                placeholder="Select Item"
+                value={itemvalue}
+                onChange={(val) => setItemValue(val)}
+                options={masterItemNames.map(i => ({ value: i.item_name, label: i.item_name }))}
+              />
+              <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "24px" }}>
+                <button className="add-button-dialog" onClick={handleItemClose} type="button">CANCEL</button>
+                <button className="add-button-dialog" type="submit">ADD</button>
+              </div>
+            </DialogContent>
           </form>
         </Dialog>
       </div>
+
       {/* sub-category dialog */}
       <div>
         <Dialog
           fullWidth
+          maxWidth="xs"
           open={subopen}
           onClose={handleSubClose}
           PaperProps={{
             style: {
-              padding: "10px",
+              padding: "16px 24px",
               backgroundColor: "var(--background-1)",
+              borderRadius: "12px",
             },
           }}
         >
-          <form onSubmit={handleSubSubmit}>
-            <div>
-              <DialogTitle
-                style={{
-                  textAlign: "center",
-                  color: "var(--text)",
-                }}
-              >
-                <h2>Add Sub-Category</h2>
-              </DialogTitle>
-              <DialogContent
-                style={{
-                  fontSize: 20,
-                }}
-              >
-                <br />
-                <InputBox
-                  type="text"
-                  label="Add Sub-Category"
-                  id="subvalue"
-                  name="item_name"
-                  value={subvalue}
-                  onChange={(e) => setSubValue(e.target.value)}
-                  required
-                  sx={{ width: "100%" }}
-                  size="small"
-                />
-                <br />
-              
-              
-              
-              
-                <div className="float-right">
-                  <button
-                    className="add-button-dialog"
-                    onClick={handleSubClose}
-                  >
-                    CANCEL
-                  </button>
-                  <button className="add-button-dialog" type="submit">
-                    ADD
-                  </button>
-                </div>
-              </DialogContent>
-            </div>
+          <form onSubmit={handleSubSubmit} style={{ width: "100%" }}>
+            <DialogTitle style={{ textAlign: "center", color: "var(--text)", padding: "10px 0" }}>
+              <h2 style={{ margin: 0 }}>Add Sub-Category</h2>
+            </DialogTitle>
+            <DialogContent style={{ padding: "8px 0" }}>
+              <CustomEditSelect
+                label="Select Sub-Category"
+                placeholder="Select Sub-Category"
+                value={subvalue}
+                onChange={(val) => setSubValue(val)}
+                options={masterSubCategories.map(s => ({ value: s.sub_category_name, label: s.sub_category_name }))}
+              />
+              <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "24px" }}>
+                <button className="add-button-dialog" onClick={handleSubClose} type="button">CANCEL</button>
+                <button className="add-button-dialog" type="submit">ADD</button>
+              </div>
+            </DialogContent>
           </form>
         </Dialog>
       </div>
+
       {/* brand dialog */}
       <div>
         <Dialog
           fullWidth
+          maxWidth="xs"
           open={brandopen}
           onClose={handleBrandClose}
           PaperProps={{
             style: {
-              padding: "10px",
+              padding: "16px 24px",
               backgroundColor: "var(--background-1)",
+              borderRadius: "12px",
             },
           }}
         >
-          <form onSubmit={handleBrandSubmit}>
-            <div>
-              <DialogTitle
-                style={{
-                  textAlign: "center",
-                  color: "var(--text)",
-                }}
-              >
-                <h2>Add Brand</h2>
-              </DialogTitle>
-              <DialogContent
-                style={{
-                  fontSize: 20,
-                }}
-              >
-                <br />
-                <InputBox
-                  type="text"
-                  label="Add Brand"
-                  id="brandvalue"
-                  name="item_name"
-                  value={brandvalue}
-                  onChange={(e) => setBrandValue(e.target.value)}
-                  required
-                  sx={{ width: "100%" }}
-                  size="small"
-                />
-                <br />
-              
-             
-            
-                <br />
-                <div className="float-right">
-                  <button
-                    className="add-button-dialog"
-                    onClick={handleBrandClose}
-                  >
-                    CANCEL
-                  </button>
-                  <button className="add-button-dialog" type="submit">
-                    ADD
-                  </button>
-                </div>
-              </DialogContent>
-            </div>
+          <form onSubmit={handleBrandSubmit} style={{ width: "100%" }}>
+            <DialogTitle style={{ textAlign: "center", color: "var(--text)", padding: "10px 0" }}>
+              <h2 style={{ margin: 0 }}>Add Brand</h2>
+            </DialogTitle>
+            <DialogContent style={{ padding: "8px 0" }}>
+              <CustomEditSelect
+                label="Select Brand"
+                placeholder="Select Brand"
+                value={brandvalue}
+                onChange={(val) => setBrandValue(val)}
+                options={masterBrands.map(b => ({ value: b.brand_name, label: b.brand_name }))}
+              />
+              <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "24px" }}>
+                <button className="add-button-dialog" onClick={handleBrandClose} type="button">CANCEL</button>
+                <button className="add-button-dialog" type="submit">ADD</button>
+              </div>
+            </DialogContent>
           </form>
         </Dialog>
       </div>
+
+      {/* model dialog */}
       <div>
-        {/* model dialog */}
         <Dialog
           fullWidth
+          maxWidth="xs"
           open={modelopen}
           onClose={handleModelClose}
           PaperProps={{
             style: {
-              padding: "10px",
+              padding: "16px 24px",
               backgroundColor: "var(--background-1)",
+              borderRadius: "12px",
             },
           }}
         >
-          <form onSubmit={handleModelSubmit}>
-            <div>
-              <DialogTitle
-                style={{
-                  textAlign: "center",
-                  color: "var(--text)",
-                }}
-              >
-                <h2>Add Model</h2>
-              </DialogTitle>
-              <DialogContent
-                style={{
-                  fontSize: 20,
-                }}
-              >
-                <br />
-                <InputBox
-                  type="text"
-                  label="Add Model"
-                  id="modelvalue"
-                  name="model_name"
-                  value={modelvalue}
-                  onChange={(e) => setModelValue(e.target.value)}
-                  required
-                  sx={{ width: "100%" }}
-                  size="small"
-                />
-                <div className="float-right">
-                  <button
-                    className="add-button-dialog"
-                    onClick={handleModelClose}
-                  >
-                    CANCEL
-                  </button>
-                  <button className="add-button-dialog" type="submit">
-                    ADD
-                  </button>
-                </div>
-              </DialogContent>
-            </div>
+          <form onSubmit={handleModelSubmit} style={{ width: "100%" }}>
+            <DialogTitle style={{ textAlign: "center", color: "var(--text)", padding: "10px 0" }}>
+              <h2 style={{ margin: 0 }}>Add Model</h2>
+            </DialogTitle>
+            <DialogContent style={{ padding: "8px 0" }}>
+              <CustomEditSelect
+                label="Select Model"
+                placeholder="Select Model"
+                value={modelvalue}
+                onChange={(val) => setModelValue(val)}
+                options={masterModels.map(m => ({ value: m.model_name, label: m.model_name }))}
+              />
+              <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "24px" }}>
+                <button className="add-button-dialog" onClick={handleModelClose} type="button">CANCEL</button>
+                <button className="add-button-dialog" type="submit">ADD</button>
+              </div>
+            </DialogContent>
           </form>
         </Dialog>
       </div>
+
+      {/* color dialog */}
       <div>
-        {/* color dialog */}
         <Dialog
           fullWidth
+          maxWidth="xs"
           open={coloropen}
           onClose={handleColorClose}
           PaperProps={{
             style: {
-              padding: "10px",
+              padding: "16px 24px",
               backgroundColor: "var(--background-1)",
+              borderRadius: "12px",
             },
           }}
         >
-          <form onSubmit={handleColorSubmit}>
-            <div>
-              <DialogTitle
-                style={{
-                  textAlign: "center",
-                  color: "var(--text)",
-                }}
-              >
-                <h2>Add Color</h2>
-              </DialogTitle>
-              <DialogContent
-                style={{
-                  fontSize: 20,
-                }}
-              >
-                <br />
-                <InputBox
-                  type="text"
-                  label="Add Color"
-                  id="colorvalue"
-                  name="color_name"
-                  value={colorvalue}
-                  onChange={(e) => setColorValue(e.target.value)}
-                  required
-                  sx={{ width: "100%" }}
-                  size="small"
-                />
-                <div className="float-right">
-                  <button
-                    className="add-button-dialog"
-                    onClick={handleColorClose}
-                  >
-                    CANCEL
-                  </button>
-                  <button type="submit" className="add-button-dialog">
-                    ADD
-                  </button>
-                </div>
-              </DialogContent>
-            </div>
+          <form onSubmit={handleColorSubmit} style={{ width: "100%" }}>
+            <DialogTitle style={{ textAlign: "center", color: "var(--text)", padding: "10px 0" }}>
+              <h2 style={{ margin: 0 }}>Add Color</h2>
+            </DialogTitle>
+            <DialogContent style={{ padding: "8px 0" }}>
+              <CustomEditSelect
+                label="Select Color"
+                placeholder="Select Color"
+                value={colorvalue}
+                onChange={(val) => setColorValue(val)}
+                options={masterColors.map(c => ({ value: c.color_name, label: c.color_name }))}
+              />
+              <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "24px" }}>
+                <button className="add-button-dialog" onClick={handleColorClose} type="button">CANCEL</button>
+                <button className="add-button-dialog" type="submit">ADD</button>
+              </div>
+            </DialogContent>
           </form>
         </Dialog>
       </div>
+
       {/* size dialog */}
       <div>
         <Dialog
           fullWidth
+          maxWidth="xs"
           open={sizeopen}
-          onClose={handleColorClose}
+          onClose={handleSizeClose}
           PaperProps={{
             style: {
-              padding: "10px",
+              padding: "16px 24px",
               backgroundColor: "var(--background-1)",
+              borderRadius: "12px",
             },
           }}
         >
-          <form onSubmit={handleSizeSubmit}>
-            <div>
-              <DialogTitle
-                style={{
-                  textAlign: "center",
-                  color: "var(--text)",
-                }}
-              >
-                <h2>Add Size</h2>
-              </DialogTitle>
-              <DialogContent
-                style={{
-                  fontSize: 20,
-                }}
-              >
-                <br />
-                <InputBox
-                  type="text"
-                  label="Add Size"
-                  id="sizevalue"
-                  name="size_name"
-                  value={sizevalue}
-                  onChange={(e) => setSizeValue(e.target.value)}
-                  required
-                  sx={{ width: "100%" }}
-                  size="small"
-                />
-                <div className="float-right">
-                  <button
-                    className="add-button-dialog"
-                    onClick={handleSizeClose}
-                  >
-                    CANCEL
-                  </button>
-                  <button type="submit" className="add-button-dialog">
-                    ADD
-                  </button>
-                </div>
-              </DialogContent>
-            </div>
+          <form onSubmit={handleSizeSubmit} style={{ width: "100%" }}>
+            <DialogTitle style={{ textAlign: "center", color: "var(--text)", padding: "10px 0" }}>
+              <h2 style={{ margin: 0 }}>Add Size</h2>
+            </DialogTitle>
+            <DialogContent style={{ padding: "8px 0" }}>
+              <CustomEditSelect
+                label="Select Size"
+                placeholder="Select Size"
+                value={sizevalue}
+                onChange={(val) => setSizeValue(val)}
+                options={masterSizes.map(s => ({ value: s.size_name, label: s.size_name }))}
+              />
+              <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "24px" }}>
+                <button className="add-button-dialog" onClick={handleSizeClose} type="button">CANCEL</button>
+                <button className="add-button-dialog" type="submit">ADD</button>
+              </div>
+            </DialogContent>
           </form>
         </Dialog>
       </div>
+
       {/* occasion dialog */}
       <div>
-        <Dialog fullWidth open={occasionopen} onClose={handleOccasionClose} PaperProps={{ style: { padding: "10px", backgroundColor: "var(--background-1)" } }}>
-          <form onSubmit={handleOccasionSubmit}>
-            <DialogTitle style={{ textAlign: "center", color: "var(--text)" }}><h2>Add Occasion</h2></DialogTitle>
-            <DialogContent>
-              <br />
-              <InputBox type="text" label="Add Occasion" value={occasionvalue} onChange={(e) => setOccasionValue(e.target.value)} required sx={{ width: "100%" }} size="small" />
-              <div className="float-right" style={{ marginTop: "20px" }}>
+        <Dialog
+          fullWidth
+          maxWidth="xs"
+          open={occasionopen}
+          onClose={handleOccasionClose}
+          PaperProps={{
+            style: {
+              padding: "16px 24px",
+              backgroundColor: "var(--background-1)",
+              borderRadius: "12px",
+            },
+          }}
+        >
+          <form onSubmit={handleOccasionSubmit} style={{ width: "100%" }}>
+            <DialogTitle style={{ textAlign: "center", color: "var(--text)", padding: "10px 0" }}>
+              <h2 style={{ margin: 0 }}>Add Occasion</h2>
+            </DialogTitle>
+            <DialogContent style={{ padding: "8px 0" }}>
+              <CustomEditSelect
+                label="Select Occasion"
+                placeholder="Select Occasion"
+                value={occasionvalue}
+                onChange={(val) => setOccasionValue(val)}
+                options={masterOccasions.map(o => ({ value: o.occasion_name, label: o.occasion_name }))}
+              />
+              <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "24px" }}>
                 <button className="add-button-dialog" onClick={handleOccasionClose} type="button">CANCEL</button>
                 <button className="add-button-dialog" type="submit">ADD</button>
               </div>
@@ -2526,13 +2512,32 @@ function AddStocks({ text }) {
 
       {/* type dialog */}
       <div>
-        <Dialog fullWidth open={typeopen} onClose={handleTypeClose} PaperProps={{ style: { padding: "10px", backgroundColor: "var(--background-1)" } }}>
-          <form onSubmit={handleTypeSubmit}>
-            <DialogTitle style={{ textAlign: "center", color: "var(--text)" }}><h2>Add Type</h2></DialogTitle>
-            <DialogContent>
-              <br />
-              <InputBox type="text" label="Add Type" value={typevalue} onChange={(e) => setTypeValue(e.target.value)} required sx={{ width: "100%" }} size="small" />
-              <div className="float-right" style={{ marginTop: "20px" }}>
+        <Dialog
+          fullWidth
+          maxWidth="xs"
+          open={typeopen}
+          onClose={handleTypeClose}
+          PaperProps={{
+            style: {
+              padding: "16px 24px",
+              backgroundColor: "var(--background-1)",
+              borderRadius: "12px",
+            },
+          }}
+        >
+          <form onSubmit={handleTypeSubmit} style={{ width: "100%" }}>
+            <DialogTitle style={{ textAlign: "center", color: "var(--text)", padding: "10px 0" }}>
+              <h2 style={{ margin: 0 }}>Add Type</h2>
+            </DialogTitle>
+            <DialogContent style={{ padding: "8px 0" }}>
+              <CustomEditSelect
+                label="Select Type"
+                placeholder="Select Type"
+                value={typevalue}
+                onChange={(val) => setTypeValue(val)}
+                options={masterTypes.map(t => ({ value: t.type_name, label: t.type_name }))}
+              />
+              <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "24px" }}>
                 <button className="add-button-dialog" onClick={handleTypeClose} type="button">CANCEL</button>
                 <button className="add-button-dialog" type="submit">ADD</button>
               </div>
