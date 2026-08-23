@@ -129,37 +129,113 @@ function AddStocks({ text }) {
   const [masterSubCategories, setMasterSubCategories] = useState([]);
   const [masterTypes, setMasterTypes] = useState([]);
 
-  const fetchMasterData = async () => {
+  const fetchMasterCategories = async () => {
     try {
-      const catRes = await requestApi("GET", "/api/master/category", {});
-      if (catRes.success) setMasterCategories(catRes.data);
-
-      const brandRes = await requestApi("GET", "/api/master/brand", {});
-      if (brandRes.success) setMasterBrands(brandRes.data);
-
-      const colorRes = await requestApi("GET", "/api/master/color", {});
-      if (colorRes.success) setMasterColors(colorRes.data);
-
-      const itemRes = await requestApi("GET", "/api/master/item-name", {});
-      if (itemRes.success) setMasterItemNames(itemRes.data);
-
-      const modelRes = await requestApi("GET", "/api/master/model", {});
-      if (modelRes.success) setMasterModels(modelRes.data);
-
-      const sizeRes = await requestApi("GET", "/api/master/size", {});
-      if (sizeRes.success) setMasterSizes(sizeRes.data); 
-
-      const occasionRes = await requestApi("GET", "/api/master/occasion", {});
-      if (occasionRes.success) setMasterOccasions(occasionRes.data);
-
-      const subRes = await requestApi("GET", "/api/master/sub-category", {});
-      if (subRes.success) setMasterSubCategories(subRes.data);
-
-      const typeRes = await requestApi("GET", "/api/master/type", {});
-      if (typeRes.success) setMasterTypes(typeRes.data);
+      const res = await requestApi("GET", "/api/master/category", {});
+      if (res.success) setMasterCategories(res.data);
     } catch (err) {
-      console.error("Error fetching master data:", err);
+      console.error("Error fetching master categories:", err);
     }
+  };
+
+  const fetchMasterItemNames = async (catId) => {
+    try {
+      const id = catId || selectedCategory?.id;
+      const url = id ? `/api/master/item-name?category_id=${id}` : `/api/master/item-name`;
+      const res = await requestApi("GET", url, {});
+      if (res.success) setMasterItemNames(res.data);
+    } catch (err) {
+      console.error("Error fetching master item names:", err);
+    }
+  };
+
+  const fetchMasterSubCategories = async (catId) => {
+    try {
+      const id = catId || selectedCategory?.id;
+      const url = id ? `/api/master/sub-category?category_id=${id}` : `/api/master/sub-category`;
+      const res = await requestApi("GET", url, {});
+      if (res.success) setMasterSubCategories(res.data);
+    } catch (err) {
+      console.error("Error fetching master sub categories:", err);
+    }
+  };
+
+  const fetchMasterBrands = async (catId) => {
+    try {
+      const id = catId || selectedCategory?.id;
+      const url = id ? `/api/master/brand?category_id=${id}` : `/api/master/brand`;
+      const res = await requestApi("GET", url, {});
+      if (res.success) setMasterBrands(res.data);
+    } catch (err) {
+      console.error("Error fetching master brands:", err);
+    }
+  };
+
+  const fetchMasterModels = async (catId) => {
+    try {
+      const id = catId || selectedCategory?.id;
+      const url = id ? `/api/master/model?category_id=${id}` : `/api/master/model`;
+      const res = await requestApi("GET", url, {});
+      if (res.success) setMasterModels(res.data);
+    } catch (err) {
+      console.error("Error fetching master models:", err);
+    }
+  };
+
+  const fetchMasterColors = async (catId) => {
+    try {
+      const id = catId || selectedCategory?.id;
+      const url = id ? `/api/master/color?category_id=${id}` : `/api/master/color`;
+      const res = await requestApi("GET", url, {});
+      if (res.success) setMasterColors(res.data);
+    } catch (err) {
+      console.error("Error fetching master colors:", err);
+    }
+  };
+
+  const fetchMasterSizes = async (catId) => {
+    try {
+      const id = catId || selectedCategory?.id;
+      const url = id ? `/api/master/size?category_id=${id}` : `/api/master/size`;
+      const res = await requestApi("GET", url, {});
+      if (res.success) setMasterSizes(res.data);
+    } catch (err) {
+      console.error("Error fetching master size:", err);
+    }
+  };
+
+  const fetchMasterOccasions = async (catId) => {
+    try {
+      const id = catId || selectedCategory?.id;
+      const url = id ? `/api/master/occasion?category_id=${id}` : `/api/master/occasion`;
+      const res = await requestApi("GET", url, {});
+      if (res.success) setMasterOccasions(res.data);
+    } catch (err) {
+      console.error("Error fetching master occasions:", err);
+    }
+  };
+
+  const fetchMasterTypes = async (catId) => {
+    try {
+      const id = catId || selectedCategory?.id;
+      const url = id ? `/api/master/type?category_id=${id}` : `/api/master/type`;
+      const res = await requestApi("GET", url, {});
+      if (res.success) setMasterTypes(res.data);
+    } catch (err) {
+      console.error("Error fetching master types:", err);
+    }
+  };
+
+  const fetchMasterData = async () => {
+    fetchMasterCategories();
+    fetchMasterSubCategories();
+    fetchMasterItemNames();
+    fetchMasterBrands();
+    fetchMasterModels();
+    fetchMasterColors();
+    fetchMasterSizes();
+    fetchMasterOccasions();
+    fetchMasterTypes();
   };
 
   useEffect(() => {
@@ -228,6 +304,11 @@ function AddStocks({ text }) {
   const handleItemOpen = () => {
     setItemValue("");
     setItemImage(null);
+    if (selectedCategory) {
+      fetchMasterItemNames(selectedCategory.id);
+    } else {
+      fetchMasterItemNames();
+    }
     setItemOpen(true);
   };
   const handleItemClose = () => {
@@ -275,6 +356,11 @@ function AddStocks({ text }) {
   const handleSubOpen = () => {
     setSubValue("");
     setSubImage(null);
+    if (selectedCategory) {
+      fetchMasterSubCategories(selectedCategory.id);
+    } else {
+      fetchMasterSubCategories();
+    }
     setSubOpen(true);
   };
   const handleSubClose = () => {
@@ -323,6 +409,11 @@ function AddStocks({ text }) {
   const handleBrandOpen = () => {
     setBrandValue("");
     setBrandImage(null);
+    if (selectedCategory) {
+      fetchMasterBrands(selectedCategory.id);
+    } else {
+      fetchMasterBrands();
+    }
     setBrandOpen(true);
   };
   const handleBrandClose = () => {
@@ -367,6 +458,11 @@ function AddStocks({ text }) {
 
   const handleModelOpen = () => {
     setModelValue("");
+    if (selectedCategory) {
+      fetchMasterModels(selectedCategory.id);
+    } else {
+      fetchMasterModels();
+    }
     setModelOpen(true);
   };
   const handleModelClose = () => {
@@ -410,6 +506,11 @@ function AddStocks({ text }) {
 
   const handleColorOpen = () => {
     setColorValue("");
+    if (selectedCategory) {
+      fetchMasterColors(selectedCategory.id);
+    } else {
+      fetchMasterColors();
+    }
     setColorOpen(true);
   };
   const handleColorClose = () => {
@@ -453,6 +554,11 @@ function AddStocks({ text }) {
 
   const handleSizeOpen = () => {
     setSizeValue("");
+    if (selectedCategory) {
+      fetchMasterSizes(selectedCategory.id);
+    } else {
+      fetchMasterSizes();
+    }
     setSizeOpen(true);
   };
   const handleSizeClose = () => {
@@ -496,6 +602,11 @@ function AddStocks({ text }) {
 
   const handleOccasionOpen = () => {
     setOccasionValue("");
+    if (selectedCategory) {
+      fetchMasterOccasions(selectedCategory.id);
+    } else {
+      fetchMasterOccasions();
+    }
     setOccasionOpen(true);
   };
   const handleOccasionClose = () => {
@@ -532,6 +643,11 @@ function AddStocks({ text }) {
 
   const handleTypeOpen = () => {
     setTypeValue("");
+    if (selectedCategory) {
+      fetchMasterTypes(selectedCategory.id);
+    } else {
+      fetchMasterTypes();
+    }
     setTypeOpen(true);
   };
   const handleTypeClose = () => {
@@ -594,6 +710,14 @@ function AddStocks({ text }) {
     setSelectedSubCategory(null);
     setSelectedBrand(null);
     fetchItemNames(category.id);
+    fetchMasterItemNames(category.id);
+    fetchMasterSubCategories(category.id);
+    fetchMasterBrands(category.id);
+    fetchMasterModels(category.id);
+    fetchMasterColors(category.id);
+    fetchMasterSizes(category.id);
+    fetchMasterOccasions(category.id);
+    fetchMasterTypes(category.id);
   };
 
   const handleSelectItemName = async (itemName) => {
@@ -601,6 +725,7 @@ function AddStocks({ text }) {
     setSelectedSubCategory(null);
     setSelectedBrand(null);
     fetchSubCategories(itemName.id);
+    fetchMasterSubCategories(selectedCategory?.id);
     setShowItemNames(false);
     setShowSubCategories(true);
   };
@@ -609,6 +734,7 @@ function AddStocks({ text }) {
     setSelectedSubCategory(subCategory);
     setSelectedBrand(null);
     fetchBrands(subCategory.id);
+    fetchMasterBrands(selectedCategory?.id);
     setShowSubCategories(false);
     setShowBrands(true);
   };
@@ -617,6 +743,7 @@ function AddStocks({ text }) {
     setSelectedBrand(brand);
     setSelectedModel(null);
     fetchModels(brand.id);
+    fetchMasterModels(selectedCategory?.id);
     setShowBrands(false);
     setShowModels(true);
   };
@@ -625,6 +752,7 @@ function AddStocks({ text }) {
     setSelectedModel(model);
     setSelectedColor(null);
     fetchColors(model.id);
+    fetchMasterColors(selectedCategory?.id);
     setShowModels(false);
     setShowColors(true);
   };
@@ -633,6 +761,7 @@ function AddStocks({ text }) {
     setSelectedColor(color);
     setSelectedSize(null);
     fetchSizes(color.id);
+    fetchMasterSizes(selectedCategory?.id);
     setShowColors(false);
     setShowSizes(true);
   };
@@ -641,6 +770,7 @@ function AddStocks({ text }) {
     setSelectedSize(size);
     setSelectedOccasion(null);
     fetchOccasions(size.id);
+    fetchMasterOccasions(selectedCategory?.id);
     setShowSizes(false);
     setShowOccasions(true);
   };
@@ -649,6 +779,7 @@ function AddStocks({ text }) {
     setSelectedOccasion(occasion);
     setSelectedType(null);
     fetchTypes(occasion.id);
+    fetchMasterTypes(selectedCategory?.id);
     setShowOccasions(false);
     setShowTypes(true);
   };

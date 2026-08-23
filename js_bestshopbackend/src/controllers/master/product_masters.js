@@ -2,7 +2,7 @@ const { get_query_database } = require("../../config/database_utlis");
 
 exports.get_master_categories = async (req, res) => {
   try {
-    const query = `SELECT id, category_name FROM master_category WHERE status = '1'`;
+    const query = `SELECT id, name AS category_name, name FROM category WHERE status = '1'`;
     const data = await get_query_database(query);
     res.json(data);
   } catch (err) {
@@ -11,32 +11,16 @@ exports.get_master_categories = async (req, res) => {
   }
 };
 
-exports.get_master_brands = async (req, res) => {
-  try {
-    const query = `SELECT id, brand_name FROM master_brand WHERE status = '1'`;
-    const data = await get_query_database(query);
-    res.json(data);
-  } catch (err) {
-    console.error("Error fetching master brands:", err);
-    res.status(500).json({ error: "Error fetching master brands" });
-  }
-};
-
-exports.get_master_colors = async (req, res) => {
-  try {
-    const query = `SELECT id, color_name FROM master_color WHERE status = '1'`;
-    const data = await get_query_database(query);
-    res.json(data);
-  } catch (err) {
-    console.error("Error fetching master colors:", err);
-    res.status(500).json({ error: "Error fetching master colors" });
-  }
-};
-
 exports.get_master_item_names = async (req, res) => {
   try {
-    const query = `SELECT id, item_name FROM master_item_name WHERE status = '1'`;
-    const data = await get_query_database(query);
+    const category_id = req.query.category_id || req.query.category;
+    let query = `SELECT id, item_name, category_id FROM master_item_name WHERE status = '1'`;
+    const params = [];
+    if (category_id) {
+      query += ` AND category_id = ?`;
+      params.push(category_id);
+    }
+    const data = await get_query_database(query, params);
     res.json(data);
   } catch (err) {
     console.error("Error fetching master item names:", err);
@@ -44,32 +28,16 @@ exports.get_master_item_names = async (req, res) => {
   }
 };
 
-exports.get_master_models = async (req, res) => {
-  try {
-    const query = `SELECT id, model_name FROM master_model WHERE status = '1'`;
-    const data = await get_query_database(query);
-    res.json(data);
-  } catch (err) {
-    console.error("Error fetching master models:", err);
-    res.status(500).json({ error: "Error fetching master models" });
-  }
-};
-
-exports.get_master_occasions = async (req, res) => {
-  try {
-    const query = `SELECT id, occasion_name FROM master_occasion WHERE status = '1'`;
-    const data = await get_query_database(query);
-    res.json(data);
-  } catch (err) {
-    console.error("Error fetching master occasions:", err);
-    res.status(500).json({ error: "Error fetching master occasions" });
-  }
-};
-
 exports.get_master_sub_categories = async (req, res) => {
   try {
-    const query = `SELECT id, sub_category_name FROM master_sub_category WHERE status = '1'`;
-    const data = await get_query_database(query);
+    const category_id = req.query.category_id || req.query.category;
+    let query = `SELECT id, sub_category_name, category_id FROM master_sub_category WHERE status = '1'`;
+    const params = [];
+    if (category_id) {
+      query += ` AND category_id = ?`;
+      params.push(category_id);
+    }
+    const data = await get_query_database(query, params);
     res.json(data);
   } catch (err) {
     console.error("Error fetching master sub categories:", err);
@@ -77,24 +45,104 @@ exports.get_master_sub_categories = async (req, res) => {
   }
 };
 
-exports.get_master_types = async (req, res) => {
+exports.get_master_brands = async (req, res) => {
   try {
-    const query = `SELECT id, type_name FROM master_type WHERE status = '1'`;
-    const data = await get_query_database(query);
+    const category_id = req.query.category_id || req.query.category;
+    let query = `SELECT id, brand_name, category_id FROM master_brand WHERE status = '1'`;
+    const params = [];
+    if (category_id) {
+      query += ` AND category_id = ?`;
+      params.push(category_id);
+    }
+    const data = await get_query_database(query, params);
     res.json(data);
   } catch (err) {
-    console.error("Error fetching master types:", err);
-    res.status(500).json({ error: "Error fetching master types" });
+    console.error("Error fetching master brands:", err);
+    res.status(500).json({ error: "Error fetching master brands" });
+  }
+};
+
+exports.get_master_models = async (req, res) => {
+  try {
+    const category_id = req.query.category_id || req.query.category;
+    let query = `SELECT id, model_name, category_id FROM master_model WHERE status = '1'`;
+    const params = [];
+    if (category_id) {
+      query += ` AND category_id = ?`;
+      params.push(category_id);
+    }
+    const data = await get_query_database(query, params);
+    res.json(data);
+  } catch (err) {
+    console.error("Error fetching master models:", err);
+    res.status(500).json({ error: "Error fetching master models" });
+  }
+};
+
+exports.get_master_colors = async (req, res) => {
+  try {
+    const category_id = req.query.category_id || req.query.category;
+    let query = `SELECT id, color_name, category_id FROM master_color WHERE status = '1'`;
+    const params = [];
+    if (category_id) {
+      query += ` AND category_id = ?`;
+      params.push(category_id);
+    }
+    const data = await get_query_database(query, params);
+    res.json(data);
+  } catch (err) {
+    console.error("Error fetching master colors:", err);
+    res.status(500).json({ error: "Error fetching master colors" });
   }
 };
 
 exports.get_master_size = async (req, res) => {
   try {
-    const query = `SELECT id, size_name FROM master_size WHERE status = '1'`;
-    const data = await get_query_database(query);
+    const category_id = req.query.category_id || req.query.category;
+    let query = `SELECT id, size_name, category_id FROM master_size WHERE status = '1'`;
+    const params = [];
+    if (category_id) {
+      query += ` AND category_id = ?`;
+      params.push(category_id);
+    }
+    const data = await get_query_database(query, params);
     res.json(data);
   } catch (err) {
     console.error("Error fetching master size:", err);
     res.status(500).json({ error: "Error fetching master size" });
+  }
+};
+
+exports.get_master_occasions = async (req, res) => {
+  try {
+    const category_id = req.query.category_id || req.query.category;
+    let query = `SELECT id, occasion_name, category_id FROM master_occasion WHERE status = '1'`;
+    const params = [];
+    if (category_id) {
+      query += ` AND category_id = ?`;
+      params.push(category_id);
+    }
+    const data = await get_query_database(query, params);
+    res.json(data);
+  } catch (err) {
+    console.error("Error fetching master occasions:", err);
+    res.status(500).json({ error: "Error fetching master occasions" });
+  }
+};
+
+exports.get_master_types = async (req, res) => {
+  try {
+    const category_id = req.query.category_id || req.query.category;
+    let query = `SELECT id, type_name, category_id FROM master_type WHERE status = '1'`;
+    const params = [];
+    if (category_id) {
+      query += ` AND category_id = ?`;
+      params.push(category_id);
+    }
+    const data = await get_query_database(query, params);
+    res.json(data);
+  } catch (err) {
+    console.error("Error fetching master types:", err);
+    res.status(500).json({ error: "Error fetching master types" });
   }
 };
