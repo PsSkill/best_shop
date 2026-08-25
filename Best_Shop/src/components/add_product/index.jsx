@@ -252,15 +252,70 @@ function AddStocks({ text }) {
   const [sizeopen, setSizeOpen] = useState(false);
   const [occasionopen, setOccasionOpen] = useState(false);
   const [typeopen, setTypeOpen] = useState(false);
+
+  // modal tab states ("existing" or "new")
+  const [categoryTab, setCategoryTab] = useState("existing");
+  const [itemTab, setItemTab] = useState("existing");
+  const [subTab, setSubTab] = useState("existing");
+  const [brandTab, setBrandTab] = useState("existing");
+  const [modelTab, setModelTab] = useState("existing");
+  const [colorTab, setColorTab] = useState("existing");
+  const [sizeTab, setSizeTab] = useState("existing");
+  const [occasionTab, setOccasionTab] = useState("existing");
+  const [typeTab, setTypeTab] = useState("existing");
+
+  const renderModalTabs = (currentTab, setTab, setValue) => (
+    <div style={{ display: "flex", borderBottom: "1px solid var(--button)", marginBottom: "16px", borderRadius: "8px", overflow: "hidden", backgroundColor: "var(--background-1)" }}>
+      <button
+        type="button"
+        onClick={() => { setTab("existing"); setValue(""); }}
+        style={{
+          flex: 1,
+          padding: "10px 16px",
+          border: "none",
+          borderBottom: currentTab === "existing" ? "3px solid var(--button)" : "3px solid transparent",
+          backgroundColor: currentTab === "existing" ? "rgba(0, 0, 0, 0.05)" : "transparent",
+          color: currentTab === "existing" ? "var(--button)" : "var(--text)",
+          fontWeight: currentTab === "existing" ? "bold" : "normal",
+          cursor: "pointer",
+          fontSize: "14px",
+          transition: "all 0.2s ease-in-out",
+        }}
+      >
+        Existing Product
+      </button>
+      <button
+        type="button"
+        onClick={() => { setTab("new"); setValue(""); }}
+        style={{
+          flex: 1,
+          padding: "10px 16px",
+          border: "none",
+          borderBottom: currentTab === "new" ? "3px solid var(--button)" : "3px solid transparent",
+          backgroundColor: currentTab === "new" ? "rgba(0, 0, 0, 0.05)" : "transparent",
+          color: currentTab === "new" ? "var(--button)" : "var(--text)",
+          fontWeight: currentTab === "new" ? "bold" : "normal",
+          cursor: "pointer",
+          fontSize: "14px",
+          transition: "all 0.2s ease-in-out",
+        }}
+      >
+        New Product Add
+      </button>
+    </div>
+  );
+
   // category dialog
   const handleCategoryOpen = () => {
     setCategoryValue("");
     setCategoryImage(null);
+    setCategoryTab("existing");
     setCategoryOpen(true);
   };
   const handleCategoryClose = () => {
     setCategoryValue("");
     setCategoryImage(null);
+    setCategoryTab("existing");
     setCategoryOpen(false);
   };
 
@@ -2373,13 +2428,25 @@ function AddStocks({ text }) {
               <h2 style={{ margin: 0 }}>Add Category</h2>
             </DialogTitle>
             <DialogContent style={{ padding: "8px 0" }}>
-              <CustomEditSelect
-                label="Select Category"
-                placeholder="Select Category"
-                value={categoryvalue}
-                onChange={(val) => setCategoryValue(val)}
-                options={masterCategories.map(cat => ({ value: cat.category_name, label: cat.category_name }))}
-              />
+              {renderModalTabs(categoryTab, setCategoryTab, setCategoryValue)}
+              {categoryTab === "existing" ? (
+                <CustomEditSelect
+                  label="Select Category"
+                  placeholder="Select Category"
+                  value={categoryvalue}
+                  onChange={(val) => setCategoryValue(val)}
+                  options={masterCategories.map(cat => ({ value: cat.category_name, label: cat.category_name }))}
+                />
+              ) : (
+                <InputBox
+                  label="Category Name"
+                  placeholder="Enter Category Name"
+                  value={categoryvalue}
+                  onChange={(e) => setCategoryValue(e.target.value)}
+                  size="small"
+                  fullWidth
+                />
+              )}
               <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "24px" }}>
                 <button className="add-button-dialog" onClick={handleCategoryClose} type="button">CANCEL</button>
                 <button className="add-button-dialog" type="submit">ADD</button>
@@ -2409,13 +2476,25 @@ function AddStocks({ text }) {
               <h2 style={{ margin: 0 }}>Add Item</h2>
             </DialogTitle>
             <DialogContent style={{ padding: "8px 0" }}>
-              <CustomEditSelect
-                label="Select Item"
-                placeholder="Select Item"
-                value={itemvalue}
-                onChange={(val) => setItemValue(val)}
-                options={masterItemNames.map(i => ({ value: i.item_name, label: i.item_name }))}
-              />
+              {renderModalTabs(itemTab, setItemTab, setItemValue)}
+              {itemTab === "existing" ? (
+                <CustomEditSelect
+                  label="Select Item"
+                  placeholder="Select Item"
+                  value={itemvalue}
+                  onChange={(val) => setItemValue(val)}
+                  options={masterItemNames.map(i => ({ value: i.item_name, label: i.item_name }))}
+                />
+              ) : (
+                <InputBox
+                  label="Item Name"
+                  placeholder="Enter Item Name"
+                  value={itemvalue}
+                  onChange={(e) => setItemValue(e.target.value)}
+                  size="small"
+                  fullWidth
+                />
+              )}
               <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "24px" }}>
                 <button className="add-button-dialog" onClick={handleItemClose} type="button">CANCEL</button>
                 <button className="add-button-dialog" type="submit">ADD</button>
@@ -2445,13 +2524,25 @@ function AddStocks({ text }) {
               <h2 style={{ margin: 0 }}>Add Sub-Category</h2>
             </DialogTitle>
             <DialogContent style={{ padding: "8px 0" }}>
-              <CustomEditSelect
-                label="Select Sub-Category"
-                placeholder="Select Sub-Category"
-                value={subvalue}
-                onChange={(val) => setSubValue(val)}
-                options={masterSubCategories.map(s => ({ value: s.sub_category_name, label: s.sub_category_name }))}
-              />
+              {renderModalTabs(subTab, setSubTab, setSubValue)}
+              {subTab === "existing" ? (
+                <CustomEditSelect
+                  label="Select Sub-Category"
+                  placeholder="Select Sub-Category"
+                  value={subvalue}
+                  onChange={(val) => setSubValue(val)}
+                  options={masterSubCategories.map(s => ({ value: s.sub_category_name, label: s.sub_category_name }))}
+                />
+              ) : (
+                <InputBox
+                  label="Sub-Category Name"
+                  placeholder="Enter Sub-Category Name"
+                  value={subvalue}
+                  onChange={(e) => setSubValue(e.target.value)}
+                  size="small"
+                  fullWidth
+                />
+              )}
               <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "24px" }}>
                 <button className="add-button-dialog" onClick={handleSubClose} type="button">CANCEL</button>
                 <button className="add-button-dialog" type="submit">ADD</button>
@@ -2481,13 +2572,25 @@ function AddStocks({ text }) {
               <h2 style={{ margin: 0 }}>Add Brand</h2>
             </DialogTitle>
             <DialogContent style={{ padding: "8px 0" }}>
-              <CustomEditSelect
-                label="Select Brand"
-                placeholder="Select Brand"
-                value={brandvalue}
-                onChange={(val) => setBrandValue(val)}
-                options={masterBrands.map(b => ({ value: b.brand_name, label: b.brand_name }))}
-              />
+              {renderModalTabs(brandTab, setBrandTab, setBrandValue)}
+              {brandTab === "existing" ? (
+                <CustomEditSelect
+                  label="Select Brand"
+                  placeholder="Select Brand"
+                  value={brandvalue}
+                  onChange={(val) => setBrandValue(val)}
+                  options={masterBrands.map(b => ({ value: b.brand_name, label: b.brand_name }))}
+                />
+              ) : (
+                <InputBox
+                  label="Brand Name"
+                  placeholder="Enter Brand Name"
+                  value={brandvalue}
+                  onChange={(e) => setBrandValue(e.target.value)}
+                  size="small"
+                  fullWidth
+                />
+              )}
               <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "24px" }}>
                 <button className="add-button-dialog" onClick={handleBrandClose} type="button">CANCEL</button>
                 <button className="add-button-dialog" type="submit">ADD</button>
@@ -2517,13 +2620,25 @@ function AddStocks({ text }) {
               <h2 style={{ margin: 0 }}>Add Model</h2>
             </DialogTitle>
             <DialogContent style={{ padding: "8px 0" }}>
-              <CustomEditSelect
-                label="Select Model"
-                placeholder="Select Model"
-                value={modelvalue}
-                onChange={(val) => setModelValue(val)}
-                options={masterModels.map(m => ({ value: m.model_name, label: m.model_name }))}
-              />
+              {renderModalTabs(modelTab, setModelTab, setModelValue)}
+              {modelTab === "existing" ? (
+                <CustomEditSelect
+                  label="Select Model"
+                  placeholder="Select Model"
+                  value={modelvalue}
+                  onChange={(val) => setModelValue(val)}
+                  options={masterModels.map(m => ({ value: m.model_name, label: m.model_name }))}
+                />
+              ) : (
+                <InputBox
+                  label="Model Name"
+                  placeholder="Enter Model Name"
+                  value={modelvalue}
+                  onChange={(e) => setModelValue(e.target.value)}
+                  size="small"
+                  fullWidth
+                />
+              )}
               <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "24px" }}>
                 <button className="add-button-dialog" onClick={handleModelClose} type="button">CANCEL</button>
                 <button className="add-button-dialog" type="submit">ADD</button>
@@ -2553,13 +2668,25 @@ function AddStocks({ text }) {
               <h2 style={{ margin: 0 }}>Add Color</h2>
             </DialogTitle>
             <DialogContent style={{ padding: "8px 0" }}>
-              <CustomEditSelect
-                label="Select Color"
-                placeholder="Select Color"
-                value={colorvalue}
-                onChange={(val) => setColorValue(val)}
-                options={masterColors.map(c => ({ value: c.color_name, label: c.color_name }))}
-              />
+              {renderModalTabs(colorTab, setColorTab, setColorValue)}
+              {colorTab === "existing" ? (
+                <CustomEditSelect
+                  label="Select Color"
+                  placeholder="Select Color"
+                  value={colorvalue}
+                  onChange={(val) => setColorValue(val)}
+                  options={masterColors.map(c => ({ value: c.color_name, label: c.color_name }))}
+                />
+              ) : (
+                <InputBox
+                  label="Color Name"
+                  placeholder="Enter Color Name"
+                  value={colorvalue}
+                  onChange={(e) => setColorValue(e.target.value)}
+                  size="small"
+                  fullWidth
+                />
+              )}
               <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "24px" }}>
                 <button className="add-button-dialog" onClick={handleColorClose} type="button">CANCEL</button>
                 <button className="add-button-dialog" type="submit">ADD</button>
@@ -2589,13 +2716,25 @@ function AddStocks({ text }) {
               <h2 style={{ margin: 0 }}>Add Size</h2>
             </DialogTitle>
             <DialogContent style={{ padding: "8px 0" }}>
-              <CustomEditSelect
-                label="Select Size"
-                placeholder="Select Size"
-                value={sizevalue}
-                onChange={(val) => setSizeValue(val)}
-                options={masterSizes.map(s => ({ value: s.size_name, label: s.size_name }))}
-              />
+              {renderModalTabs(sizeTab, setSizeTab, setSizeValue)}
+              {sizeTab === "existing" ? (
+                <CustomEditSelect
+                  label="Select Size"
+                  placeholder="Select Size"
+                  value={sizevalue}
+                  onChange={(val) => setSizeValue(val)}
+                  options={masterSizes.map(s => ({ value: s.size_name, label: s.size_name }))}
+                />
+              ) : (
+                <InputBox
+                  label="Size Name"
+                  placeholder="Enter Size Name"
+                  value={sizevalue}
+                  onChange={(e) => setSizeValue(e.target.value)}
+                  size="small"
+                  fullWidth
+                />
+              )}
               <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "24px" }}>
                 <button className="add-button-dialog" onClick={handleSizeClose} type="button">CANCEL</button>
                 <button className="add-button-dialog" type="submit">ADD</button>
@@ -2625,13 +2764,25 @@ function AddStocks({ text }) {
               <h2 style={{ margin: 0 }}>Add Occasion</h2>
             </DialogTitle>
             <DialogContent style={{ padding: "8px 0" }}>
-              <CustomEditSelect
-                label="Select Occasion"
-                placeholder="Select Occasion"
-                value={occasionvalue}
-                onChange={(val) => setOccasionValue(val)}
-                options={masterOccasions.map(o => ({ value: o.occasion_name, label: o.occasion_name }))}
-              />
+              {renderModalTabs(occasionTab, setOccasionTab, setOccasionValue)}
+              {occasionTab === "existing" ? (
+                <CustomEditSelect
+                  label="Select Occasion"
+                  placeholder="Select Occasion"
+                  value={occasionvalue}
+                  onChange={(val) => setOccasionValue(val)}
+                  options={masterOccasions.map(o => ({ value: o.occasion_name, label: o.occasion_name }))}
+                />
+              ) : (
+                <InputBox
+                  label="Occasion Name"
+                  placeholder="Enter Occasion Name"
+                  value={occasionvalue}
+                  onChange={(e) => setOccasionValue(e.target.value)}
+                  size="small"
+                  fullWidth
+                />
+              )}
               <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "24px" }}>
                 <button className="add-button-dialog" onClick={handleOccasionClose} type="button">CANCEL</button>
                 <button className="add-button-dialog" type="submit">ADD</button>
@@ -2661,13 +2812,25 @@ function AddStocks({ text }) {
               <h2 style={{ margin: 0 }}>Add Type</h2>
             </DialogTitle>
             <DialogContent style={{ padding: "8px 0" }}>
-              <CustomEditSelect
-                label="Select Type"
-                placeholder="Select Type"
-                value={typevalue}
-                onChange={(val) => setTypeValue(val)}
-                options={masterTypes.map(t => ({ value: t.type_name, label: t.type_name }))}
-              />
+              {renderModalTabs(typeTab, setTypeTab, setTypeValue)}
+              {typeTab === "existing" ? (
+                <CustomEditSelect
+                  label="Select Type"
+                  placeholder="Select Type"
+                  value={typevalue}
+                  onChange={(val) => setTypeValue(val)}
+                  options={masterTypes.map(t => ({ value: t.type_name, label: t.type_name }))}
+                />
+              ) : (
+                <InputBox
+                  label="Type Name"
+                  placeholder="Enter Type Name"
+                  value={typevalue}
+                  onChange={(e) => setTypeValue(e.target.value)}
+                  size="small"
+                  fullWidth
+                />
+              )}
               <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "24px" }}>
                 <button className="add-button-dialog" onClick={handleTypeClose} type="button">CANCEL</button>
                 <button className="add-button-dialog" type="submit">ADD</button>

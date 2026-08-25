@@ -43,20 +43,23 @@ const InputBox = ({
   size,
   helperText,
   sx,
-  accept
+  accept,
+  placeholder,
+  required,
+  fullWidth = true,
+  ...rest
 }) => {
   return (
     <Box
-      component="form"
-      noValidate
       sx={{
-        gridTemplateColumns: { sm: "1fr 1fr" },
-        gap: 2,
-        color:"var(--text)"
+        width: "100%",
+        color: "var(--text)"
       }}
     >
       <CssTextField
+        fullWidth={fullWidth}
         label={label}
+        placeholder={placeholder}
         type={type}
         min={min}
         value={value}
@@ -64,9 +67,10 @@ const InputBox = ({
         id={id}
         size={size}
         helperText={helperText}
-        // sx={{ width: "100%" }}
-        sx={sx}
+        required={required}
+        sx={{ width: "100%", ...sx }}
         accept={accept}
+        {...rest}
       />
     </Box>
   );
