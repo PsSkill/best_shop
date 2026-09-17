@@ -103,6 +103,9 @@ function AddStocks({ text }) {
   const [purchaseprice, setPurchasePrice] = useState(1);
   // const [errors, setErrors] = useState([]);
   const [bill, setBill] = useState("");
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [recentAddedList, setRecentAddedList] = useState([]);
   const navigate = useNavigate();
   // value
   const [categoryvalue, setCategoryValue] = useState("");
@@ -879,32 +882,115 @@ function AddStocks({ text }) {
     setShowPricing(false);
   };
 
+  const handleOpenPreview = () => {
+    if (!bill || bill.toString().trim() === "") {
+      notifyError("Please enter S.No / Bill number.");
+      return;
+    }
+    const parsedQty = parseInt(quantity, 10);
+    if (!parsedQty || parsedQty <= 0) {
+      notifyError("Please enter a valid quantity.");
+      return;
+    }
+    if (!sellingprice || Number(sellingprice) <= 0) {
+      notifyError("Please enter a valid selling price.");
+      return;
+    }
+    if (!mrp || Number(mrp) <= 0) {
+      notifyError("Please enter a valid MRP.");
+      return;
+    }
+    if (!purchaseprice || Number(purchaseprice) <= 0) {
+      notifyError("Please enter a valid purchase price.");
+      return;
+    }
+    setPreviewOpen(true);
+  };
+
+  const handleResetToStart = () => {
+    setSelectedCategory(null);
+    setSelectedItemName(null);
+    setSelectedSubCategory(null);
+    setSelectedBrand(null);
+    setSelectedModel(null);
+    setSelectedColor(null);
+    setSelectedSize(null);
+    setSelectedOccasion(null);
+    setSelectedType(null);
+    setShowSizes(false);
+    setShowOccasions(false);
+    setShowTypes(false);
+    setShowPricing(false);
+    setShowCategories(true);
+    setQuantity("");
+    setSellingPrice("");
+    setMrp("");
+    setBill("");
+  };
+
+  const handleSubmitProduct = async () => {
+    setIsSubmitting(true);
+    const success = await handleGenerate();
+    setIsSubmitting(false);
+    if (success) {
+      const newItem = {
+        id: Date.now(),
+        bill,
+        name: [
+          selectedCategory?.name,
+          selectedItemName?.name,
+          selectedSubCategory?.name,
+          selectedBrand?.name,
+        ]
+          .filter(Boolean)
+          .join("-"),
+        model: selectedModel?.name || "-",
+        color: selectedColor?.name || "-",
+        size: selectedSize?.name || "-",
+        occasion: selectedOccasion?.name || "-",
+        type: selectedType?.name || "-",
+        quantity,
+        mrp,
+        sellingprice,
+        purchaseprice,
+      };
+      setRecentAddedList((prev) => [newItem, ...prev]);
+      setPreviewOpen(false);
+      // Reset pricing inputs and stay on the same page
+      setQuantity("");
+      setSellingPrice("");
+      setMrp("");
+    }
+  };
+
   const handleGenerate = async () => {
     try {
       const parsedQty = parseInt(quantity, 10);
       if (!parsedQty || parsedQty <= 0) {
         notifyError("Please enter a valid quantity.");
-        return;
+        return false;
       }
 
       const bodyData = {
         bill_number: bill,
-        category: selectedCategory.id,
-        item_name: selectedItemName.id,
-        sub_category: selectedSubCategory.id,
-        brand: selectedBrand.id,
-        model: selectedModel.id,
-        color: selectedColor.id,
-        size: [selectedSize.id],
-        occasion: selectedOccasion.id,
-        type: selectedType.id,
+        category: selectedCategory?.id,
+        item_name: selectedItemName?.id,
+        sub_category: selectedSubCategory?.id,
+        brand: selectedBrand?.id,
+        model: selectedModel?.id,
+        color: selectedColor?.id,
+        size: selectedSize ? [selectedSize.id] : [],
+        occasion: selectedOccasion?.id,
+        type: selectedType?.id,
         quantity: [parsedQty],
         name: [
-          selectedCategory.name,
-          selectedItemName.name,
-          selectedSubCategory.name,
-          selectedBrand.name,
-        ].join("-"),
+          selectedCategory?.name,
+          selectedItemName?.name,
+          selectedSubCategory?.name,
+          selectedBrand?.name,
+        ]
+          .filter(Boolean)
+          .join("-"),
         purchasing_price: purchaseprice,
         selling_price: sellingprice,
         mrp: mrp,
@@ -916,12 +1002,15 @@ function AddStocks({ text }) {
 
       const response = await requestApi("POST", "/api/stock/stock", bodyData, {});
       if (response.success) {
-        notifySuccess("Stock Added Successfull");
+        notifySuccess("Stock Added Successfully");
+        return true;
       } else {
-        notifyError("Stock Failed to Add");
+        notifyError(response.message || "Stock Failed to Add");
+        return false;
       }
     } catch (error) {
       notifyError("Stock Failed to Add");
+      return false;
     }
   };
 
@@ -2388,19 +2477,59 @@ function AddStocks({ text }) {
 
                         <div className="pricing-actions">
                           <button
+                            type="button"
                             className="action-btn action-btn--generate"
-                            onClick={() => { handleGenerate(); handleNavigate("/productdashboard"); }}
+                            onClick={handleOpenPreview}
                           >
-                            ✚ Generate
+                            👁 Preview & Submit
                           </button>
-                          <button
-                            className="action-btn action-btn--other"
-                            onClick={() => { handleGenerate(); handleRefresh(); }}
-                          >
-                            + Add other
-                          </button>
+                        
                         </div>
                       </div>
+
+                      {recentAddedList.length > 0 && (
+                        <div className="recent-added-container">
+                          <div className="recent-added-header">
+                            <h3>Recently Added Products ({recentAddedList.length})</h3>
+                          </div>
+                          <div className="recent-added-table-wrap">
+                            <table className="recent-added-table">
+                              <thead>
+                                <tr>
+                                  <th>#</th>
+                                  <th>S.No / Bill</th>
+                                  <th>Product Name</th>
+                                  <th>Model</th>
+                                  <th>Color</th>
+                                  <th>Size</th>
+                                  <th>Occasion</th>
+                                  <th>Type</th>
+                                  <th>Qty</th>
+                                  <th>Selling Price</th>
+                                  <th>MRP</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {recentAddedList.map((item, idx) => (
+                                  <tr key={item.id}>
+                                    <td>{idx + 1}</td>
+                                    <td>{item.bill}</td>
+                                    <td>{item.name}</td>
+                                    <td>{item.model}</td>
+                                    <td>{item.color}</td>
+                                    <td>{item.size}</td>
+                                    <td>{item.occasion}</td>
+                                    <td>{item.type}</td>
+                                    <td><strong>{item.quantity}</strong></td>
+                                    <td>₹{item.sellingprice}</td>
+                                    <td>₹{item.mrp}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -2408,7 +2537,134 @@ function AddStocks({ text }) {
             </div>
           </div>
         </div>
-      </div>      {/* category dialog */}
+      </div>
+
+      {/* Product Preview Modal */}
+      <Dialog
+        fullWidth
+        maxWidth="md"
+        open={previewOpen}
+        onClose={() => !isSubmitting && setPreviewOpen(false)}
+        PaperProps={{
+          style: {
+            padding: "24px",
+            backgroundColor: "var(--background-1)",
+            borderRadius: "16px",
+            color: "var(--text)",
+            boxShadow: "0 10px 40px rgba(0, 0, 0, 0.25)",
+          },
+        }}
+      >
+        <div className="preview-modal-header">
+          <h2 style={{ margin: 0, color: "var(--button)", fontSize: "22px", fontWeight: 700 }}>
+            Product Preview
+          </h2>
+          <button
+            type="button"
+            onClick={() => !isSubmitting && setPreviewOpen(false)}
+            style={{
+              background: "transparent",
+              border: "none",
+              fontSize: "20px",
+              cursor: "pointer",
+              color: "var(--text)",
+            }}
+          >
+            ✕
+          </button>
+        </div>
+
+        <div style={{ marginTop: "16px" }}>
+          <p style={{ margin: "0 0 14px 0", fontSize: "14px", color: "var(--text)", opacity: 0.85 }}>
+            Please review the product details before submitting. Once submitted, you will stay on this page to continue adding products.
+          </p>
+
+          <div className="preview-table-container">
+            <table className="preview-table">
+              <tbody>
+                <tr>
+                  <th>S.No / Bill No</th>
+                  <td><strong>{bill || "-"}</strong></td>
+                  <th>Quantity</th>
+                  <td><strong>{quantity || "0"}</strong></td>
+                </tr>
+                <tr>
+                  <th>Product Name</th>
+                  <td colSpan="3">
+                    <strong style={{ color: "var(--button)" }}>
+                      {[
+                        selectedCategory?.name,
+                        selectedItemName?.name,
+                        selectedSubCategory?.name,
+                        selectedBrand?.name,
+                      ]
+                        .filter(Boolean)
+                        .join(" - ")}
+                    </strong>
+                  </td>
+                </tr>
+                <tr>
+                  <th>Category</th>
+                  <td>{selectedCategory?.name || "-"}</td>
+                  <th>Item Name</th>
+                  <td>{selectedItemName?.name || "-"}</td>
+                </tr>
+                <tr>
+                  <th>Sub Category</th>
+                  <td>{selectedSubCategory?.name || "-"}</td>
+                  <th>Brand</th>
+                  <td>{selectedBrand?.name || "-"}</td>
+                </tr>
+                <tr>
+                  <th>Model</th>
+                  <td>{selectedModel?.name || "-"}</td>
+                  <th>Color</th>
+                  <td>{selectedColor?.name || "-"}</td>
+                </tr>
+                <tr>
+                  <th>Size</th>
+                  <td>{selectedSize?.name || "-"}</td>
+                  <th>Occasion</th>
+                  <td>{selectedOccasion?.name || "-"}</td>
+                </tr>
+                <tr>
+                  <th>Type</th>
+                  <td>{selectedType?.name || "-"}</td>
+                  <th>Purchase Price</th>
+                  <td>₹{purchaseprice || "0"}</td>
+                </tr>
+                <tr>
+                  <th>Selling Price</th>
+                  <td>₹{sellingprice || "0"}</td>
+                  <th>MRP</th>
+                  <td>₹{mrp || "0"}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: "12px", marginTop: "24px" }}>
+          <button
+            type="button"
+            className="action-btn action-btn--other"
+            onClick={() => setPreviewOpen(false)}
+            disabled={isSubmitting}
+          >
+            ← Back to Edit
+          </button>
+          <button
+            type="button"
+            className="action-btn action-btn--generate"
+            onClick={handleSubmitProduct}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? "Submitting..." : "✔ Confirm & Submit Product"}
+          </button>
+        </div>
+      </Dialog>
+
+      {/* category dialog */}
       <div>
         <Dialog
           fullWidth

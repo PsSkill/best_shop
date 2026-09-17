@@ -1226,3 +1226,114 @@ img {
   background: var(--button);
   color: #fff;
 }
+
+/* ─── Preview Modal & Table ────────────────────────── */
+.preview-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 14px;
+  border-bottom: 2px solid var(--button);
+}
+
+.preview-table-container {
+  max-height: 440px;
+  overflow-y: auto;
+  border-radius: 8px;
+  border: 1px solid rgba(23, 138, 132, 0.25);
+  margin-top: 14px;
+}
+
+.preview-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.preview-table th {
+  background-color: var(--background);
+  color: var(--button);
+  font-weight: 700;
+  padding: 10px 14px;
+  text-align: left;
+  border-bottom: 1px solid rgba(23, 138, 132, 0.2);
+  width: 22%;
+  white-space: nowrap;
+}
+
+.preview-table td {
+  padding: 10px 14px;
+  color: var(--text);
+  border-bottom: 1px solid rgba(23, 138, 132, 0.1);
+  text-align: left;
+}
+
+.preview-highlight-row {
+  background-color: rgba(23, 138, 132, 0.1);
+}
+
+.preview-highlight-row th,
+.preview-highlight-row td {
+  border-bottom: none;
+  padding: 14px;
+}
+
+/* ─── Recently Added Section ───────────────────────── */
+.recent-added-container {
+  width: 100%;
+  max-width: 900px;
+  margin-top: 28px;
+  background: var(--background-1);
+  border-radius: 14px;
+  padding: 20px 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  box-sizing: border-box;
+}
+
+.recent-added-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+  border-bottom: 2px solid var(--button);
+  padding-bottom: 8px;
+}
+
+.recent-added-header h3 {
+  margin: 0;
+  color: var(--button);
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.recent-added-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+.recent-added-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.recent-added-table th {
+  background: var(--background);
+  color: var(--button);
+  padding: 10px 12px;
+  text-align: center;
+  white-space: nowrap;
+  position: sticky;
+  top: 0;
+  font-weight: 700;
+}
+
+.recent-added-table td {
+  padding: 10px 12px;
+  text-align: center;
+  white-space: nowrap;
+  border-bottom: 1px solid rgba(23, 138, 132, 0.15);
+  color: var(--text);
+}
