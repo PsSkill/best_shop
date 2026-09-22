@@ -13,6 +13,7 @@ import ReceiptLongOutlinedIcon from "@mui/icons-material/ReceiptLongOutlined";
 import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined";
 import BarChartOutlinedIcon from "@mui/icons-material/BarChartOutlined";
 import FileDownloadOutlinedIcon from "@mui/icons-material/FileDownloadOutlined";
+import GetAppIcon from "@mui/icons-material/GetApp";
 import "./horizontal_navbar.css";
 
 const HorizontalNavbar = () => {
@@ -67,6 +68,17 @@ const HorizontalNavbar = () => {
           <span>{username}</span>
         </div>
 
+        {/* Install App Button */}
+        <button
+          type="button"
+          className="navbar-install-btn"
+          onClick={() => window.dispatchEvent(new Event("open-pwa-install"))}
+          title="Install Best Shop App"
+        >
+          <GetAppIcon style={{ fontSize: 16 }} />
+          <span>Install App</span>
+        </button>
+
         {/* Dedicated Logout Button (Clean, single icon) */}
         <button
           type="button"
@@ -93,6 +105,17 @@ const HorizontalNavbar = () => {
       {showMenu && (
         <div className="mobile-dropdown-menu">
           <ul className="mobile-nav-list">
+            <li
+              className="mobile-nav-item"
+              style={{ color: "#0ea5e9", fontWeight: 700 }}
+              onClick={() => {
+                setShowMenu(false);
+                window.dispatchEvent(new Event("open-pwa-install"));
+              }}
+            >
+              <GetAppIcon style={{ fontSize: 20 }} />
+              <span>Install App on Phone</span>
+            </li>
             {navItems.map((item) => (
               <li
                 key={item.path}

@@ -14,7 +14,7 @@ import ImportData from "./components/import_data/import";
 import Stocks from "./components/stocks/stocks";
 import ModelDashboard from "./components/Inventory/model_dashboard";
 import Home from "./components/Home/home";
-
+import InstallPrompt from "./components/PWA/InstallPrompt";
 
 function Protected({ children }) {
   const navigate = useNavigate();
@@ -39,6 +39,7 @@ function Protected({ children }) {
 }
 const routes = () => (
   <Router>
+    <InstallPrompt />
     <Routes>
       <Route path="/" element={<Login />} />
       <Route path="/login" element={<Login />} />
