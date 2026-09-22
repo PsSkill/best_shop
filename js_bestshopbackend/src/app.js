@@ -45,6 +45,6 @@ app.use("/api/master", master_routes);
 
 
 // Start server
-app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
+app.listen(port, "0.0.0.0", () => {
+  console.log(`Backend server running on http://0.0.0.0:${port} (Accessible locally and across Wi-Fi network)`);
 });

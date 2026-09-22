@@ -230,6 +230,7 @@ export default function AddStocks() {
   });
 
   // ── Master data (pre-seeded dropdowns)
+  // eslint-disable-next-line no-unused-vars
   const [master, setMaster] = useState({
     categories: [], itemNames: [], subCategories: [], brands: [],
     models: [], colors: [], sizes: [], occasions: [], types: [],
