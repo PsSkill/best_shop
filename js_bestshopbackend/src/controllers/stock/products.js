@@ -7,14 +7,14 @@ exports.get_products = async (req, res) => {
     category.image_path AS category_image,
     category.name AS category_name,
     item_name.name AS item_name,
-    COALESCE(SUM(test_stock.quantity), 0) AS count
+    COALESCE(SUM(stock.quantity), 0) AS count
 FROM
     item_name
 LEFT JOIN
     category ON item_name.category = category.id
 
 LEFT JOIN
-    test_stock ON item_name.id = test_stock.item_name
+    stock ON item_name.id = stock.item_name
 GROUP BY 
     id,
     category_image,

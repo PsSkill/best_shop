@@ -13,25 +13,25 @@ exports.get_products_page = async (req, res) => {
           item_name.image_path AS item_image,
           TRIM(color.name) AS color_name, 
           TRIM(size.name) AS size_name,
-          test_stock.mrp AS price,
-          SUM(test_stock.quantity) AS total_quantity, 
-          CAST(ROUND((SUM(test_stock.sell_quantity) / SUM(test_stock.quantity)) * 100, 2) AS DECIMAL(10,0)) AS availability
+          stock.mrp AS price,
+          SUM(stock.quantity) AS total_quantity, 
+          CAST(ROUND((SUM(stock.quantity) / NULLIF(SUM(stock.quantity), 0)) * 100, 2) AS DECIMAL(10,0)) AS availability
         FROM 
-          test_stock
+          stock
         LEFT JOIN 
-          category ON test_stock.category = category.id
+          category ON stock.category = category.id
         LEFT JOIN 
-          sub_category ON test_stock.sub_category = sub_category.id
+          sub_category ON stock.sub_category = sub_category.id
         LEFT JOIN 
-          item_name ON test_stock.item_name = item_name.id
+          item_name ON stock.item_name = item_name.id
         LEFT JOIN 
-          brand ON test_stock.brand = brand.id
+          brand ON stock.brand = brand.id
         LEFT JOIN 
-          model ON test_stock.model = model.id
+          model ON stock.model = model.id
         LEFT JOIN
-          size ON test_stock.size = size.id
+          size ON stock.size = size.id
         LEFT JOIN 
-          color ON test_stock.color = color.id
+          color ON stock.color = color.id
         WHERE item_name.id = ?
         GROUP BY 
           category_name, 

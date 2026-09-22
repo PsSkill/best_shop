@@ -6,11 +6,11 @@ exports.get_sales_dashboard_data = async (req, res) => {
     const query = `
     SELECT 
     item_name.name AS itemname,
-    SUM(test_stock.sell_quantity) AS available_quantity,
-    SUM(test_stock.quantity) AS total_quantity
-    FROM test_stock
-    JOIN item_name ON test_stock.item_name = item_name.id
-    JOIN category ON test_stock.category = category.id
+    SUM(stock.quantity) AS available_quantity,
+    SUM(stock.quantity) AS total_quantity
+    FROM stock
+    JOIN item_name ON stock.item_name = item_name.id
+    JOIN category ON stock.category = category.id
     WHERE category.id = ?
     GROUP BY item_name.name;
         `;

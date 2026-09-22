@@ -1,155 +1,73 @@
-import React, { useState, useEffect } from "react";
-import { FaBars } from "react-icons/fa";
+import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import "./vertical_navbar.css";
 import Cookies from "js-cookie";
-import { FaUserCircle } from "react-icons/fa";
-import SpaceDashboardIcon from "@mui/icons-material/SpaceDashboard";
-import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+import SpaceDashboardOutlinedIcon from "@mui/icons-material/SpaceDashboardOutlined";
 import AddchartIcon from "@mui/icons-material/Addchart";
-import DatasetOutlinedIcon from "@mui/icons-material/DatasetOutlined";
-import EqualizerIcon from '@mui/icons-material/Equalizer';
+import ReceiptLongOutlinedIcon from "@mui/icons-material/ReceiptLongOutlined";
+import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined";
+import BarChartOutlinedIcon from "@mui/icons-material/BarChartOutlined";
+import FileDownloadOutlinedIcon from "@mui/icons-material/FileDownloadOutlined";
+import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
+import "./vertical_navbar.css";
 
 const VerticalNavbar = () => {
-  const username = Cookies.get("username");
-
-  const [showMenu, setShowMenu] = useState(false);
-  const [showMasterSubMenu, setShowMasterSubMenu] = useState(false);
-  const [selectedField, setSelectedField] = useState(null);
+  const rawUsername = Cookies.get("username") || "Staff";
+  const username = rawUsername.charAt(0).toUpperCase() + rawUsername.slice(1);
   const location = useLocation();
   const navigate = useNavigate();
 
-  const toggleMenu = () => {
-    setShowMenu(!showMenu);
-  };
+  const currentPath = location.pathname.substring(1) || "home";
 
-  const toggleMasterSubMenu = () => {
-    setShowMasterSubMenu(!showMasterSubMenu);
-  };
-
-  const handleMasterClick = () => {
-    toggleMasterSubMenu();
-  };
-
-  const handleNavigate = (path) => {
-    navigate(path);
-    setSelectedField(null);
-  };
-
-  useEffect(() => {
-    const currentPath = location.pathname.substring(1);
-    setSelectedField(currentPath || "dashboard");
-  }, [location.pathname]);
-
-  
+  const navItems = [
+    { key: "home", icon: <SpaceDashboardOutlinedIcon />, label: "Dashboard", path: "/home" },
+    { key: "addStock", icon: <AddchartIcon />, label: "Add Stock", path: "/addStock" },
+    { key: "productdashboard", icon: <ReceiptLongOutlinedIcon />, label: "Stock Records", path: "/productdashboard" },
+    { key: "stocks", icon: <Inventory2OutlinedIcon />, label: "Stock Catalog", path: "/stocks" },
+    { key: "model", icon: <BarChartOutlinedIcon />, label: "Analytics", path: "/model" },
+    { key: "export", icon: <FileDownloadOutlinedIcon />, label: "Import & Export", path: "/export" },
+  ];
 
   return (
-    <div className="vertical-navbar">
-      <div className="menu-icon" onClick={toggleMenu}>
-        <FaBars />
-      </div>
-
-      <ul className={showMenu ? "nav-links show" : "nav-links"}>
-        
-        <div className="user">
-          <div className="to-hide-user">
-            <FaUserCircle style={{
-              color: "var(--button)",
-              fontSize: 25
-
-            }}
-            
-            />
-           {username && username.length > 15 ? (
-          <marquee className="profile-text">{username.toUpperCase()}</marquee>
-        ) : (
-          <div className="profile-text">{username.toUpperCase()}</div>
-        )}
-            
+    <aside className="vertical-navbar">
+      <div>
+        {/* User Card */}
+        <div className="sidebar-user-card">
+          <div className="sidebar-user-avatar">
+            <PersonOutlineIcon style={{ fontSize: 20 }} />
+          </div>
+          <div className="sidebar-user-info">
+            <span className="sidebar-user-name">{username}</span>
+            <span className="sidebar-user-status">
+              <span className="sidebar-status-dot"></span>
+              Store Active
+            </span>
           </div>
         </div>
-        
-        {/* dashboard_nav */}
 
-        <li
-          className={selectedField === "home" ? "selected" : ""}
-          onClick={() => handleNavigate("/home")}
-        >
-          <SpaceDashboardIcon className="navbar-icon" style={{ marginRight: "10px" }} />
-          <b>Dashboard </b>
-        </li>
+        {/* Navigation Items */}
+        <ul className="sidebar-nav-list">
+          {navItems.map((item) => {
+            const isActive = currentPath === item.key || (item.key === "model" && currentPath === "inventory");
+            return (
+              <li
+                key={item.key}
+                className={`sidebar-nav-item ${isActive ? "active" : ""}`}
+                onClick={() => navigate(item.path)}
+              >
+                <span className="sidebar-icon">{item.icon}</span>
+                <span>{item.label}</span>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
 
-        <li
-          className={selectedField === "addStock" ? "selected" : ""}
-          onClick={() => handleNavigate("/addStock")}
-        >
-          <AddchartIcon className="navbar-icon" style={{ marginRight: "10px" }} />
-          <b>Add Stock</b>
-        </li>
-
-        {/* product_nav */}
-
-        <li
-          className={selectedField === "productdashboard" ? "selected" : ""}
-          onClick={() => handleNavigate("/productdashboard")}
-        >
-          <ShoppingCartIcon className="navbar-icon" style={{ marginRight: "10px" }} />
-          <b>Products</b>
-        </li>
-
-        {/* master */}
-
-
-        {/* <div className="sub-navbar">
-          <li className={selectedField === 'master' ? 'selected' : ''} onClick={handleMasterClick}>
-          
-
-            <SupervisorAccountIcon style={{ marginRight: '10px' }} />
-            <b>Master</b>
-            {showMasterSubMenu ? <FaAngleUp className="fa-angle-up" /> : <FaAngleDown className="fa-angle-down" />}
-            {showMasterSubMenu && (
-              <ul className="sub-menu">
-                <li className={selectedField === 'categorytable' ? 'selected' : ''} onClick={() => handleNavigate('/categorytable')}>
-                  <CategoryIcon style={{ marginRight: '10px', fontSize: '18px' }} />
-                  <b>Category</b>
-                </li>
-                <li className={selectedField === 'fieldtable' ? 'selected' : ''} onClick={() => handleNavigate('/fieldtable')}>
-                  <TableChartIcon style={{ marginRight: '10px', fontSize: '18px' }} />
-                  <b>Fields</b>
-                </li>
-                <li className={selectedField === 'detailtable' ? 'selected' : ''} onClick={() => handleNavigate('/detailtable')}>
-                  <InfoIcon style={{ marginRight: '10px', fontSize: '18px' }} />
-                  <b>Field Details</b>
-                </li>
-                <li className={selectedField === 'colourtable' ? 'selected' : ''} onClick={() => handleNavigate('/colourtable')}>
-                  <InfoIcon style={{ marginRight: '10px', fontSize: '18px' }} />
-                  <b>Colour</b>
-                </li>
-              </ul>
-            )}
-          </li>
-        </div> */}
-
-        {/* export_nav */}
-
-        <li
-          className={selectedField === "export" ? "selected" : ""}
-          onClick={() => handleNavigate("/export")}
-        >
-          <DatasetOutlinedIcon className="navbar-icon" style={{ marginRight: "10px" }} />
-          <b>Export</b>
-        </li>
-        <li
-          className={selectedField === "stocks" ? "selected" : ""}
-          onClick={() => handleNavigate("/stocks")}
-        >
-          <EqualizerIcon className="navbar-icon" style={{ marginRight: "10px" }}/>
-          <b>Stocks</b>
-        </li>
-
-        
-      </ul>
-    </div>
+      {/* Footer */}
+      <div className="sidebar-footer">
+        <span className="sidebar-footer-text">&bull; Best Shop POS System</span>
+        <span className="sidebar-footer-text" style={{ fontSize: 10, opacity: 0.7 }}>Retail Inventory Manager</span>
+      </div>
+    </aside>
   );
 };
 

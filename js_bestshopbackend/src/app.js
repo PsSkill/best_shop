@@ -3,7 +3,7 @@ const express = require("express");
 const cors = require("cors");
 const morgan = require("morgan");
 const path = require("path");
-require("dotenv").config({ path: path.resolve(__dirname, "../../.env") });
+require("dotenv").config({ path: path.resolve(__dirname, "../.env") });
 
 //routes
 const structure_routes = require("./routes/structure/structure");
@@ -19,7 +19,7 @@ const morgan_config = morgan(
 );
 
 const app = express();
-const port = process.env.DEV_PORT;
+const port = process.env.DEV_PORT || 5001;
 
 // Enable CORS AND LOGGER MIDDLEWARE
 const cors_config = {

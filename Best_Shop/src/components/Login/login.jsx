@@ -1,31 +1,30 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import "./login.css";
-import apiHost from "../../utils/api";
 import Cookies from "js-cookie";
-import inventoryImage from "../../assets/img/inventoryImage.png";
-import TextField from "@mui/material/TextField";
-import Passwordbox from "../InputBox/passwordbox";
+import apiHost from "../../utils/api";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import StorefrontIcon from "@mui/icons-material/Storefront";
+import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
+import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
+import LoginIcon from "@mui/icons-material/Login";
+import "./login.css";
 
 const Login = () => {
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const [username, setUsername] = useState("");
-
-  const notifySuccess = (message) => {
-    toast.success(message, { position: toast.POSITION.BOTTOM_LEFT });
-  };
-
-  const notifyError = (message) => {
-    toast.error(message, { position: toast.POSITION.BOTTOM_LEFT });
-  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
+    setError(null);
+
     try {
       const response = await fetch(`${apiHost}/api/auth/login`, {
         method: "POST",
@@ -37,74 +36,93 @@ const Login = () => {
 
       if (response.ok) {
         const { token, username } = await response.json();
-
-        // Store token in cookie
         Cookies.set("token", token);
-        setUsername(username);
-        Cookies.set("username",username);
-        setError(null);
-        notifySuccess("Login Successfull");
-        navigate("/addStock");
+        Cookies.set("username", username);
+        toast.success("Welcome back! Login successful.");
+        setTimeout(() => {
+          navigate("/addStock");
+        }, 300);
       } else {
-        setError("Incorrect Username or Password");
-        notifyError("Login Failed");
+        setError("Invalid username or password. Please verify.");
+        toast.error("Login failed");
       }
-    } catch (error) {
-      setError("An unexpected error occurred.");
-      notifyError("Login Failed");
+    } catch (err) {
+      console.error("Login error:", err);
+      setError("Unable to connect to server. Please check backend.");
+      toast.error("Connection error");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="total-login-page">
+    <div className="login-page-container">
       <ToastContainer />
-
-      <div className="total-login-card">
-        <div className="image-flex">
-          <img
-            className="image"
-            src={inventoryImage}
-            alt="Description of the image"
-          />
-        </div>
-        <div className="login-form-flex">
-          <div className="card-to-arrange">
-            <form onSubmit={handleLogin}>
-              <div className="login-title">LOGIN</div>
-              {error && <p className="error-message">{error}</p>}
-              <div className="user-pass">
-                <div className="username-container">
-                  <TextField
-                    fullWidth
-                    id="outlined-basic"
-                    label="Username"
-                    variant="outlined"
-                    size="small"
-                    onChange={(e) => setName(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="password-container">
-                  {/* <Passwordbox sx={{ m: 1, width: '100%' }} /> */}
-                  <Passwordbox
-                    type="password"
-                    label="Password"
-                    size="small"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="login-button-container">
-                <button className="login-button" type="submit">
-                  Login
-                </button>
-              </div>
-              <div></div>
-            </form>
+      <div className="login-auth-card">
+        {/* Brand Header */}
+        <div className="login-brand-header">
+          <div className="login-brand-badge">
+            <StorefrontIcon style={{ fontSize: 32 }} />
           </div>
+          <h2>Best Shop Stock System</h2>
+          <p>Sign in to access your inventory and stock records</p>
+        </div>
+
+        {error && <div className="login-error-banner">{error}</div>}
+
+        {/* Login Form */}
+        <form className="login-form" onSubmit={handleLogin}>
+          <div className="login-input-group">
+            <label htmlFor="username">Username</label>
+            <div className="login-input-wrap">
+              <PersonOutlineIcon style={{ color: "var(--text-muted)", fontSize: 20 }} />
+              <input
+                id="username"
+                type="text"
+                placeholder="Enter your username"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                autoFocus
+              />
+            </div>
+          </div>
+
+          <div className="login-input-group">
+            <label htmlFor="password">Password</label>
+            <div className="login-input-wrap">
+              <LockOutlinedIcon style={{ color: "var(--text-muted)", fontSize: 20 }} />
+              <input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="Enter your password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", padding: 0 }}
+              >
+                {showPassword ? (
+                  <VisibilityOffIcon style={{ fontSize: 18 }} />
+                ) : (
+                  <VisibilityIcon style={{ fontSize: 18 }} />
+                )}
+              </button>
+            </div>
+          </div>
+
+          <button type="submit" className="login-submit-btn" disabled={isLoading}>
+            <LoginIcon fontSize="small" />
+            {isLoading ? "Signing in..." : "Sign In to Best Shop"}
+          </button>
+        </form>
+
+        <div className="login-footer-links">
+          <span>Need a new account?</span>
+          <Link to="/signup">Register here</Link>
         </div>
       </div>
     </div>

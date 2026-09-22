@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState, useCallback } from "react";
 import Navbar from "../Horizontal_Navbar/horizontal_navbar";
 import VerticalNavbar from "../Vertical_Navbar/vertical_navbar";
 import requestApi from "../../utils/axios";
@@ -9,3118 +8,1042 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
-import DialogTitle from "@mui/material/DialogTitle";
-import InputBox from "../InputBox/inputbox";
-import SearchSharpIcon from "@mui/icons-material/SearchSharp";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import AddBoxRoundedIcon from "@mui/icons-material/AddBoxRounded";
-import { Modal } from "@mui/material";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
-import CustomEditSelect from "./CustomEditSelect";
 
-function AddStocks({ text }) {
-
-  const [editedName, setEditedName] = useState("");
-  const [editModalOpen, setEditModalOpen] = useState(false);
-  const [categories, setCategories] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState(null);
-  const [selectEditCategory, setSelectEditCategory] = useState(null);
-
-  const [editedItemName, setEditedItemName] = useState("");
-  const [editModalItemOpen, setEditModalItemOpen] = useState(false);
-  const [itemNames, setItemNames] = useState([]);
-  const [selectedItemName, setSelectedItemName] = useState(null);
-  const [selectedEditItem, setSelectedEditItem] = useState(null);
-
-  const [editSubName, setEditedSubName] = useState("");
-  const [editModalSubOpen, setEditModalSubOpen] = useState(false);
-  const [selectedSubCategory, setSelectedSubCategory] = useState(null);
-  const [subCategories, setSubCategories] = useState([]);
-  const [selectedEditSub, setSelectedEditSub] = useState(null);
-
-  const [editBrandName, setEditedBrandName] = useState("");
-  const [editModalBrandOpen, setEditModalBrandOpen] = useState(false);
-  const [selectedBrand, setSelectedBrand] = useState(null);
-  const [brands, setBrands] = useState([]);
-  const [selectedEditBrand, setSelectedEditBrand] = useState(null);
-
-  const [editModelName, setEditedModelName] = useState("");
-  const [editModalModelOpen, setEditModalModelOpen] = useState(false);
-  const [selectedModel, setSelectedModel] = useState(null);
-  const [models, setModels] = useState([]);
-  const [selectedEditModel, setSelectedEditModel] = useState(null);
-
-  const [editColorName, setEditedColorName] = useState("");
-  const [editModalColorOpen, setEditModalColorOpen] = useState(false);
-  const [selectedColor, setSelectedColor] = useState(null);
-  const [colors, setColors] = useState([]);
-  const [selectedEditColor, setSelectedEditColor] = useState(null);
-
-  const [editSizeName, setEditedSizeName] = useState("");
-  const [sizes, setSizes] = useState([]);
-  const [editModalSizeOpen, setEditModalSizeOpen] = useState(false);
-  const [selectedEditSize, setSelectedEditSize] = useState(null);
-  const [selectedSize, setSelectedSize] = useState(null);
-
-  const [editOccasionName, setEditedOccasionName] = useState("");
-  const [editModalOccasionOpen, setEditModalOccasionOpen] = useState(false);
-  const [occasions, setOccasions] = useState([]);
-  const [selectedOccasion, setSelectedOccasion] = useState(null);
-  const [selectedEditOccasion, setSelectedEditOccasion] = useState(null);
-
-  const [editTypeName, setEditedTypeName] = useState("");
-  const [editModalTypeOpen, setEditModalTypeOpen] = useState(false);
-  const [types, setTypes] = useState([]);
-  const [selectedType, setSelectedType] = useState(null);
-  const [selectedEditType, setSelectedEditType] = useState(null);
-
-  const [showPricing, setShowPricing] = useState(false);
-
-  const [showCategories, setShowCategories] = useState(true);
-  const [showItemNames, setShowItemNames] = useState(false);
-  const [showSubCategories, setShowSubCategories] = useState(false);
-  const [showBrands, setShowBrands] = useState(false);
-  const [showModels, setShowModels] = useState(false);
-  const [showColors, setShowColors] = useState(false);
-  const [showSizes, setShowSizes] = useState(false);
-  const [showOccasions, setShowOccasions] = useState(false);
-  const [showTypes, setShowTypes] = useState(false);
-  const [quantity, setQuantity] = useState("");
-
-  const notifySuccess = (message) => {
-    toast.success(message, { position: toast.POSITION.BOTTOM_LEFT });
-  };
-
-  const notifyError = (message) => {
-    toast.error(message, { position: toast.POSITION.BOTTOM_LEFT });
-  };
-
-  const [isLoading, setIsLoading] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [sellingprice, setSellingPrice] = useState("");
-  const [mrp, setMrp] = useState("");
-  const [purchaseprice, setPurchasePrice] = useState(1);
-  // const [errors, setErrors] = useState([]);
-  const [bill, setBill] = useState("");
-  const [previewOpen, setPreviewOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [recentAddedList, setRecentAddedList] = useState([]);
-  const navigate = useNavigate();
-  // value
-  const [categoryvalue, setCategoryValue] = useState("");
-  const [categoryimage, setCategoryImage] = useState(null);
-  const [itemvalue, setItemValue] = useState("");
-  const [itemimage, setItemImage] = useState(null);
-  const [subvalue, setSubValue] = useState("");
-  const [subimage, setSubImage] = useState(null);
-  const [brandvalue, setBrandValue] = useState("");
-  const [brandimage, setBrandImage] = useState(null);
-  const [modelvalue, setModelValue] = useState("");
-  const [colorvalue, setColorValue] = useState("");
-  const [sizevalue, setSizeValue] = useState("");
-  const [occasionvalue, setOccasionValue] = useState("");
-  const [typevalue, setTypeValue] = useState("");
-
-  const [masterCategories, setMasterCategories] = useState([]);
-  const [masterBrands, setMasterBrands] = useState([]);
-  const [masterColors, setMasterColors] = useState([]);
-  const [masterItemNames, setMasterItemNames] = useState([]);
-  const [masterModels, setMasterModels] = useState([]);
-  const [masterSizes, setMasterSizes] = useState([]); 
-  const [masterOccasions, setMasterOccasions] = useState([]);
-  const [masterSubCategories, setMasterSubCategories] = useState([]);
-  const [masterTypes, setMasterTypes] = useState([]);
-
-  const fetchMasterCategories = async () => {
-    try {
-      const res = await requestApi("GET", "/api/master/category", {});
-      if (res.success) setMasterCategories(res.data);
-    } catch (err) {
-      console.error("Error fetching master categories:", err);
-    }
-  };
-
-  const fetchMasterItemNames = async (catId) => {
-    try {
-      const id = catId || selectedCategory?.id;
-      const url = id ? `/api/master/item-name?category_id=${id}` : `/api/master/item-name`;
-      const res = await requestApi("GET", url, {});
-      if (res.success) setMasterItemNames(res.data);
-    } catch (err) {
-      console.error("Error fetching master item names:", err);
-    }
-  };
-
-  const fetchMasterSubCategories = async (catId) => {
-    try {
-      const id = catId || selectedCategory?.id;
-      const url = id ? `/api/master/sub-category?category_id=${id}` : `/api/master/sub-category`;
-      const res = await requestApi("GET", url, {});
-      if (res.success) setMasterSubCategories(res.data);
-    } catch (err) {
-      console.error("Error fetching master sub categories:", err);
-    }
-  };
-
-  const fetchMasterBrands = async (catId) => {
-    try {
-      const id = catId || selectedCategory?.id;
-      const url = id ? `/api/master/brand?category_id=${id}` : `/api/master/brand`;
-      const res = await requestApi("GET", url, {});
-      if (res.success) setMasterBrands(res.data);
-    } catch (err) {
-      console.error("Error fetching master brands:", err);
-    }
-  };
-
-  const fetchMasterModels = async (catId) => {
-    try {
-      const id = catId || selectedCategory?.id;
-      const url = id ? `/api/master/model?category_id=${id}` : `/api/master/model`;
-      const res = await requestApi("GET", url, {});
-      if (res.success) setMasterModels(res.data);
-    } catch (err) {
-      console.error("Error fetching master models:", err);
-    }
-  };
-
-  const fetchMasterColors = async (catId) => {
-    try {
-      const id = catId || selectedCategory?.id;
-      const url = id ? `/api/master/color?category_id=${id}` : `/api/master/color`;
-      const res = await requestApi("GET", url, {});
-      if (res.success) setMasterColors(res.data);
-    } catch (err) {
-      console.error("Error fetching master colors:", err);
-    }
-  };
-
-  const fetchMasterSizes = async (catId) => {
-    try {
-      const id = catId || selectedCategory?.id;
-      const url = id ? `/api/master/size?category_id=${id}` : `/api/master/size`;
-      const res = await requestApi("GET", url, {});
-      if (res.success) setMasterSizes(res.data);
-    } catch (err) {
-      console.error("Error fetching master size:", err);
-    }
-  };
-
-  const fetchMasterOccasions = async (catId) => {
-    try {
-      const id = catId || selectedCategory?.id;
-      const url = id ? `/api/master/occasion?category_id=${id}` : `/api/master/occasion`;
-      const res = await requestApi("GET", url, {});
-      if (res.success) setMasterOccasions(res.data);
-    } catch (err) {
-      console.error("Error fetching master occasions:", err);
-    }
-  };
-
-  const fetchMasterTypes = async (catId) => {
-    try {
-      const id = catId || selectedCategory?.id;
-      const url = id ? `/api/master/type?category_id=${id}` : `/api/master/type`;
-      const res = await requestApi("GET", url, {});
-      if (res.success) setMasterTypes(res.data);
-    } catch (err) {
-      console.error("Error fetching master types:", err);
-    }
-  };
-
-  const fetchMasterData = async () => {
-    fetchMasterCategories();
-    fetchMasterSubCategories();
-    fetchMasterItemNames();
-    fetchMasterBrands();
-    fetchMasterModels();
-    fetchMasterColors();
-    fetchMasterSizes();
-    fetchMasterOccasions();
-    fetchMasterTypes();
-  };
-
-  useEffect(() => {
-    fetchMasterData();
-  }, []);
-
-  // dialogs
-  const [categoryopen, setCategoryOpen] = useState(false);
-  const [itemopen, setItemOpen] = useState(false);
-  const [subopen, setSubOpen] = useState(false);
-  const [brandopen, setBrandOpen] = useState(false);
-  const [modelopen, setModelOpen] = useState(false);
-  const [coloropen, setColorOpen] = useState(false);
-  const [sizeopen, setSizeOpen] = useState(false);
-  const [occasionopen, setOccasionOpen] = useState(false);
-  const [typeopen, setTypeOpen] = useState(false);
-
-  // modal tab states ("existing" or "new")
-  const [categoryTab, setCategoryTab] = useState("existing");
-  const [itemTab, setItemTab] = useState("existing");
-  const [subTab, setSubTab] = useState("existing");
-  const [brandTab, setBrandTab] = useState("existing");
-  const [modelTab, setModelTab] = useState("existing");
-  const [colorTab, setColorTab] = useState("existing");
-  const [sizeTab, setSizeTab] = useState("existing");
-  const [occasionTab, setOccasionTab] = useState("existing");
-  const [typeTab, setTypeTab] = useState("existing");
-
-  const renderModalTabs = (currentTab, setTab, setValue) => (
-    <div style={{ display: "flex", borderBottom: "1px solid var(--button)", marginBottom: "16px", borderRadius: "8px", overflow: "hidden", backgroundColor: "var(--background-1)" }}>
-      <button
-        type="button"
-        onClick={() => { setTab("existing"); setValue(""); }}
-        style={{
-          flex: 1,
-          padding: "10px 16px",
-          border: "none",
-          borderBottom: currentTab === "existing" ? "3px solid var(--button)" : "3px solid transparent",
-          backgroundColor: currentTab === "existing" ? "rgba(0, 0, 0, 0.05)" : "transparent",
-          color: currentTab === "existing" ? "var(--button)" : "var(--text)",
-          fontWeight: currentTab === "existing" ? "bold" : "normal",
-          cursor: "pointer",
-          fontSize: "14px",
-          transition: "all 0.2s ease-in-out",
-        }}
-      >
-        Existing Product
-      </button>
-      <button
-        type="button"
-        onClick={() => { setTab("new"); setValue(""); }}
-        style={{
-          flex: 1,
-          padding: "10px 16px",
-          border: "none",
-          borderBottom: currentTab === "new" ? "3px solid var(--button)" : "3px solid transparent",
-          backgroundColor: currentTab === "new" ? "rgba(0, 0, 0, 0.05)" : "transparent",
-          color: currentTab === "new" ? "var(--button)" : "var(--text)",
-          fontWeight: currentTab === "new" ? "bold" : "normal",
-          cursor: "pointer",
-          fontSize: "14px",
-          transition: "all 0.2s ease-in-out",
-        }}
-      >
-        New Product Add
-      </button>
-    </div>
-  );
-
-  // category dialog
-  const handleCategoryOpen = () => {
-    setCategoryValue("");
-    setCategoryImage(null);
-    setCategoryTab("existing");
-    setCategoryOpen(true);
-  };
-  const handleCategoryClose = () => {
-    setCategoryValue("");
-    setCategoryImage(null);
-    setCategoryTab("existing");
-    setCategoryOpen(false);
-  };
-
-  const handleCategoryImage = (event) => {
-    setCategoryImage(event.target.files[0]);
-  };
-
-  const handleCategorySubmit = async (event) => {
-    event.preventDefault();
-
-    const formData = new FormData();
-    formData.append("name", categoryvalue);
-    formData.append("image", categoryimage);
-
-    try {
-      const response = await fetch(`${apiHost}/api/structure/category`, {
-        method: "POST",
-        body: formData,
-      });
-
-      if (response.ok) {
-        notifySuccess("Category Added Successfull");
-        fetchCategories();
-        setCategoryValue("");
-        setCategoryImage(null);
-        setCategoryOpen(false);
-      } else {
-        setCategoryValue("");
-        setCategoryImage(null);
-        setCategoryOpen(false);
-      }
-    } catch (error) {
-      notifyError("Category Failed Added");
-      setCategoryValue("");
-      setCategoryImage(null);
-      setCategoryOpen(false);
-    }
-  };
-
-  // item dialog
-  const handleItemOpen = () => {
-    setItemValue("");
-    setItemImage(null);
-    if (selectedCategory) {
-      fetchMasterItemNames(selectedCategory.id);
-    } else {
-      fetchMasterItemNames();
-    }
-    setItemOpen(true);
-  };
-  const handleItemClose = () => {
-    setItemValue("");
-    setItemImage(null);
-    setItemOpen(false);
-  };
-
-  const handleItemImage = (event) => {
-    setItemImage(event.target.files[0]);
-  };
-  const handleItemSubmit = async (event) => {
-    event.preventDefault();
-
-    const formData = new FormData();
-    formData.append("category", selectedCategory.id);
-    formData.append("name", itemvalue);
-    formData.append("image", itemimage);
-
-    try {
-      const response = await fetch(`${apiHost}/api/structure/item-name`, {
-        method: "POST",
-        body: formData,
-      });
-      if (response.ok) {
-        fetchItemNames(selectedCategory.id);
-        notifySuccess("Item-Name Added Successfull");
-        setItemValue("");
-        setItemImage(null);
-        setItemOpen(false);
-      } else {
-        setItemValue("");
-        setItemImage(null);
-        setItemOpen(false);
-      }
-    } catch (error) {
-      notifyError("Item-Name Failed to Add");
-      setItemValue("");
-      setItemImage(null);
-      setItemOpen(false);
-    }
-  };
-
-  // sub dialog
-  const handleSubOpen = () => {
-    setSubValue("");
-    setSubImage(null);
-    if (selectedCategory) {
-      fetchMasterSubCategories(selectedCategory.id);
-    } else {
-      fetchMasterSubCategories();
-    }
-    setSubOpen(true);
-  };
-  const handleSubClose = () => {
-    setSubValue("");
-    setSubImage(null);
-    setSubOpen(false);
-  };
-
-  const handleSubImage = (event) => {
-    setSubImage(event.target.files[0]);
-  };
-  const handleSubSubmit = async (event) => {
-    event.preventDefault();
-
-    const formData = new FormData();
-    formData.append("item_name", selectedItemName.id);
-    formData.append("name", subvalue);
-    formData.append("image", subimage);
-
-    try {
-      const response = await fetch(`${apiHost}/api/structure/sub-category`, {
-        method: "POST",
-        body: formData,
-      });
-
-      if (response.ok) {
-        fetchSubCategories(selectedItemName.id);
-        notifySuccess("Sub-Category Addded Successfull");
-        setSubValue("");
-        setSubImage(null);
-        setSubOpen(false);
-      } else {
-        setSubValue("");
-        setSubImage(null);
-        setSubOpen(false);
-      }
-    } catch (error) {
-      notifyError("Sub-Category Failed to Add");
-      setSubValue("");
-      setSubImage(null);
-      setSubOpen(false);
-    }
-  };
-
-  // brand dialog
-  const handleBrandOpen = () => {
-    setBrandValue("");
-    setBrandImage(null);
-    if (selectedCategory) {
-      fetchMasterBrands(selectedCategory.id);
-    } else {
-      fetchMasterBrands();
-    }
-    setBrandOpen(true);
-  };
-  const handleBrandClose = () => {
-    setBrandValue("");
-    setBrandImage(null);
-    setBrandOpen(false);
-  };
-
-  const handleBrandImage = (event) => {
-    setBrandImage(event.target.files[0]);
-  };
-  const handleBrandSubmit = async (event) => {
-    event.preventDefault();
-    const formData = new FormData();
-    formData.append("sub_category", selectedSubCategory.id);
-    formData.append("name", brandvalue);
-    formData.append("image", brandimage);
-
-    try {
-      const response = await fetch(`${apiHost}/api/structure/brand`, {
-        method: "POST",
-        body: formData,
-      });
-      if (response.ok) {
-        fetchBrands(selectedSubCategory.id);
-        notifySuccess("Brand Added Successfull");
-        setBrandValue("");
-        setBrandImage(null);
-        setBrandOpen(false);
-      } else {
-        setBrandValue("");
-        setBrandImage(null);
-        setBrandOpen(false);
-      }
-    } catch (error) {
-      notifyError("Brand Failed to Add");
-      setBrandValue("");
-      setBrandImage(null);
-      setBrandOpen(false);
-    }
-  };
-
-  const handleModelOpen = () => {
-    setModelValue("");
-    if (selectedCategory) {
-      fetchMasterModels(selectedCategory.id);
-    } else {
-      fetchMasterModels();
-    }
-    setModelOpen(true);
-  };
-  const handleModelClose = () => {
-    setModelValue("");
-    setModelOpen(false);
-  };
-
-  const handleModelSubmit = async (event) => {
-    event.preventDefault();
-    try {
-      const formData = new FormData();
-      formData.append("brand", selectedBrand.id);
-      formData.append("name", modelvalue);
-
-      const response = await requestApi(
-        "POST",
-        "/api/structure/model",
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-
-      if (response.success) {
-        fetchModels(selectedBrand.id);
-        notifySuccess("Model Added Successfull");
-        setModelValue("");
-        setModelOpen(false);
-      } else {
-        setModelValue("");
-        setModelOpen(false);
-      }
-    } catch (error) {
-      notifyError("Model Failed to Add");
-      setModelValue("");
-      setModelOpen(false);
-    }
-  };
-
-  const handleColorOpen = () => {
-    setColorValue("");
-    if (selectedCategory) {
-      fetchMasterColors(selectedCategory.id);
-    } else {
-      fetchMasterColors();
-    }
-    setColorOpen(true);
-  };
-  const handleColorClose = () => {
-    setColorValue("");
-    setColorOpen(false);
-  };
-
-  const handleColorSubmit = async (event) => {
-    event.preventDefault();
-    try {
-      const formData = new FormData();
-      formData.append("model", selectedModel.id);
-      formData.append("name", colorvalue);
-
-      const response = await requestApi(
-        "POST",
-        "/api/structure/color",
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-
-      if (response.success) {
-        fetchColors(selectedModel.id);
-        notifySuccess("Color Added Successfull");
-        setColorValue("");
-        setColorOpen(false);
-      } else {
-        setColorValue("");
-        setColorOpen(false);
-      }
-    } catch (error) {
-      notifyError("Color Failed to Add");
-      setColorValue("");
-      setColorOpen(false);
-    }
-  };
-
-  const handleSizeOpen = () => {
-    setSizeValue("");
-    if (selectedCategory) {
-      fetchMasterSizes(selectedCategory.id);
-    } else {
-      fetchMasterSizes();
-    }
-    setSizeOpen(true);
-  };
-  const handleSizeClose = () => {
-    setSizeValue("");
-    setSizeOpen(false);
-  };
-
-  const handleSizeSubmit = async (event) => {
-    event.preventDefault();
-    try {
-      const formData = new FormData();
-      formData.append("color", selectedColor.id);
-      formData.append("name", sizevalue);
-
-      const response = await requestApi(
-        "POST",
-        "/api/structure/size",
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-
-      if (response.success) {
-        fetchSizes(selectedColor.id);
-        notifySuccess("Size Added Successfull");
-        setSizeValue("");
-        setSizeOpen(false);
-      } else {
-        setSizeValue("");
-        setSizeOpen(false);
-      }
-    } catch (error) {
-      notifyError("Size Failed to Add");
-      setSizeValue("");
-      setSizeOpen(false);
-    }
-  };
-
-  const handleOccasionOpen = () => {
-    setOccasionValue("");
-    if (selectedCategory) {
-      fetchMasterOccasions(selectedCategory.id);
-    } else {
-      fetchMasterOccasions();
-    }
-    setOccasionOpen(true);
-  };
-  const handleOccasionClose = () => {
-    setOccasionValue("");
-    setOccasionOpen(false);
-  };
-
-  const handleOccasionSubmit = async (event) => {
-    event.preventDefault();
-    try {
-      const formData = new FormData();
-      formData.append("size", selectedSize.id);
-      formData.append("name", occasionvalue);
-
-      const response = await requestApi("POST", "/api/structure/occasion", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-
-      if (response.success) {
-        fetchOccasions(selectedSize.id);
-        notifySuccess("Occasion Added Successfully");
-        setOccasionValue("");
-        setOccasionOpen(false);
-      } else {
-        setOccasionValue("");
-        setOccasionOpen(false);
-      }
-    } catch (error) {
-      notifyError("Occasion Failed to Add");
-      setOccasionValue("");
-      setOccasionOpen(false);
-    }
-  };
-
-  const handleTypeOpen = () => {
-    setTypeValue("");
-    if (selectedCategory) {
-      fetchMasterTypes(selectedCategory.id);
-    } else {
-      fetchMasterTypes();
-    }
-    setTypeOpen(true);
-  };
-  const handleTypeClose = () => {
-    setTypeValue("");
-    setTypeOpen(false);
-  };
-
-  const handleTypeSubmit = async (event) => {
-    event.preventDefault();
-    try {
-      const formData = new FormData();
-      formData.append("occasion", selectedOccasion.id);
-      formData.append("name", typevalue);
-
-      const response = await requestApi("POST", "/api/structure/type", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-
-      if (response.success) {
-        fetchTypes(selectedOccasion.id);
-        notifySuccess("Type Added Successfully");
-        setTypeValue("");
-        setTypeOpen(false);
-      } else {
-        setTypeValue("");
-        setTypeOpen(false);
-      }
-    } catch (error) {
-      notifyError("Type Failed to Add");
-      setTypeValue("");
-      setTypeOpen(false);
-    }
-  };
-
-  // navigate
-  const handleNavigate = (path) => {
-    navigate(path);
-  };
-
-  useEffect(() => {
-    fetchCategories();
-  }, []);
-
-  const fetchCategories = async () => {
-    setIsLoading(true);
-    try {
-      const response = await requestApi("GET", "/api/structure/category", {});
-      if (response.success) {
-        setCategories(response.data);
-      }
-    } catch (error) {}
-    setIsLoading(false);
-  };
-
-  const handleSelectCategory = async (category) => {
-    setSelectedCategory(category);
-    setShowCategories(false);
-    setShowItemNames(true);
-    setSelectedItemName(null);
-    setSelectedSubCategory(null);
-    setSelectedBrand(null);
-    fetchItemNames(category.id);
-    fetchMasterItemNames(category.id);
-    fetchMasterSubCategories(category.id);
-    fetchMasterBrands(category.id);
-    fetchMasterModels(category.id);
-    fetchMasterColors(category.id);
-    fetchMasterSizes(category.id);
-    fetchMasterOccasions(category.id);
-    fetchMasterTypes(category.id);
-  };
-
-  const handleSelectItemName = async (itemName) => {
-    setSelectedItemName(itemName);
-    setSelectedSubCategory(null);
-    setSelectedBrand(null);
-    fetchSubCategories(itemName.id);
-    fetchMasterSubCategories(selectedCategory?.id);
-    setShowItemNames(false);
-    setShowSubCategories(true);
-  };
-
-  const handleSelectSubCategory = async (subCategory) => {
-    setSelectedSubCategory(subCategory);
-    setSelectedBrand(null);
-    fetchBrands(subCategory.id);
-    fetchMasterBrands(selectedCategory?.id);
-    setShowSubCategories(false);
-    setShowBrands(true);
-  };
-
-  const handleSelectBrand = (brand) => {
-    setSelectedBrand(brand);
-    setSelectedModel(null);
-    fetchModels(brand.id);
-    fetchMasterModels(selectedCategory?.id);
-    setShowBrands(false);
-    setShowModels(true);
-  };
-
-  const handleSelectModel = (model) => {
-    setSelectedModel(model);
-    setSelectedColor(null);
-    fetchColors(model.id);
-    fetchMasterColors(selectedCategory?.id);
-    setShowModels(false);
-    setShowColors(true);
-  };
-
-  const handleSelectColor = (color) => {
-    setSelectedColor(color);
-    setSelectedSize(null);
-    fetchSizes(color.id);
-    fetchMasterSizes(selectedCategory?.id);
-    setShowColors(false);
-    setShowSizes(true);
-  };
-
-  const handleSelectSize = (size) => {
-    setSelectedSize(size);
-    setSelectedOccasion(null);
-    fetchOccasions(size.id);
-    fetchMasterOccasions(selectedCategory?.id);
-    setShowSizes(false);
-    setShowOccasions(true);
-  };
-
-  const handleSelectOccasion = (occasion) => {
-    setSelectedOccasion(occasion);
-    setSelectedType(null);
-    fetchTypes(occasion.id);
-    fetchMasterTypes(selectedCategory?.id);
-    setShowOccasions(false);
-    setShowTypes(true);
-  };
-
-  const handleSelectType = (type) => {
-    setSelectedType(type);
-    setShowTypes(false);
-    setShowPricing(true);
-  };
-
-  const filterData = (data) => {
-    return data.filter((item) =>
-      item.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  };
-  const handleNumberChange = (e, setValue) => {
-    const inputValue = e.target.value;
-
-    if (/^\d*\.?\d*$/.test(inputValue)) {
-      setValue(inputValue);
-    }
-  };
-
-  // selling and purchasing price
-  const handleSellingPriceChange = (e) => {
-    const value = e.target.value;
-    setSellingPrice(value);
-    setMrp(value);
-  };
-
-  const handleMrpPriceChange = (e) => {
-    const value = e.target.value;
-    setMrp(value);
-  };
-  
-  // refresh data.
-  const handleRefresh = () => {
-    setSellingPrice("");
-    setMrp("");
-    setBill("");
-    setQuantity("");
-    setShowPricing(false);
-  };
-
-  const handleOpenPreview = () => {
-    if (!bill || bill.toString().trim() === "") {
-      notifyError("Please enter S.No / Bill number.");
-      return;
-    }
-    const parsedQty = parseInt(quantity, 10);
-    if (!parsedQty || parsedQty <= 0) {
-      notifyError("Please enter a valid quantity.");
-      return;
-    }
-    if (!sellingprice || Number(sellingprice) <= 0) {
-      notifyError("Please enter a valid selling price.");
-      return;
-    }
-    if (!mrp || Number(mrp) <= 0) {
-      notifyError("Please enter a valid MRP.");
-      return;
-    }
-    if (!purchaseprice || Number(purchaseprice) <= 0) {
-      notifyError("Please enter a valid purchase price.");
-      return;
-    }
-    setPreviewOpen(true);
-  };
-
-  const handleResetToStart = () => {
-    setSelectedCategory(null);
-    setSelectedItemName(null);
-    setSelectedSubCategory(null);
-    setSelectedBrand(null);
-    setSelectedModel(null);
-    setSelectedColor(null);
-    setSelectedSize(null);
-    setSelectedOccasion(null);
-    setSelectedType(null);
-    setShowSizes(false);
-    setShowOccasions(false);
-    setShowTypes(false);
-    setShowPricing(false);
-    setShowCategories(true);
-    setQuantity("");
-    setSellingPrice("");
-    setMrp("");
-    setBill("");
-  };
-
-  const handleSubmitProduct = async () => {
-    setIsSubmitting(true);
-    const success = await handleGenerate();
-    setIsSubmitting(false);
-    if (success) {
-      const newItem = {
-        id: Date.now(),
-        bill,
-        name: [
-          selectedCategory?.name,
-          selectedItemName?.name,
-          selectedSubCategory?.name,
-          selectedBrand?.name,
-        ]
-          .filter(Boolean)
-          .join("-"),
-        model: selectedModel?.name || "-",
-        color: selectedColor?.name || "-",
-        size: selectedSize?.name || "-",
-        occasion: selectedOccasion?.name || "-",
-        type: selectedType?.name || "-",
-        quantity,
-        mrp,
-        sellingprice,
-        purchaseprice,
-      };
-      setRecentAddedList((prev) => [newItem, ...prev]);
-      setPreviewOpen(false);
-      // Reset pricing inputs and stay on the same page
-      setQuantity("");
-      setSellingPrice("");
-      setMrp("");
-    }
-  };
-
-  const handleGenerate = async () => {
-    try {
-      const parsedQty = parseInt(quantity, 10);
-      if (!parsedQty || parsedQty <= 0) {
-        notifyError("Please enter a valid quantity.");
-        return false;
-      }
-
-      const bodyData = {
-        bill_number: bill,
-        category: selectedCategory?.id,
-        item_name: selectedItemName?.id,
-        sub_category: selectedSubCategory?.id,
-        brand: selectedBrand?.id,
-        model: selectedModel?.id,
-        color: selectedColor?.id,
-        size: selectedSize ? [selectedSize.id] : [],
-        occasion: selectedOccasion?.id,
-        type: selectedType?.id,
-        quantity: [parsedQty],
-        name: [
-          selectedCategory?.name,
-          selectedItemName?.name,
-          selectedSubCategory?.name,
-          selectedBrand?.name,
-        ]
-          .filter(Boolean)
-          .join("-"),
-        purchasing_price: purchaseprice,
-        selling_price: sellingprice,
-        mrp: mrp,
-        location: 1,
-        user_id: 1,
-      };
-
-      console.log(bodyData);
-
-      const response = await requestApi("POST", "/api/stock/stock", bodyData, {});
-      if (response.success) {
-        notifySuccess("Stock Added Successfully");
-        return true;
-      } else {
-        notifyError(response.message || "Stock Failed to Add");
-        return false;
-      }
-    } catch (error) {
-      notifyError("Stock Failed to Add");
-      return false;
-    }
-  };
-
-  // Function to handle search input change
-  const handleSearchInputChange = (event) => {
-    setSearchQuery(event.target.value);
-  };
-
-  const fetchItemNames = async (categoryId) => {
-    try {
-      const response = await requestApi(
-        "GET",
-        `/api/structure/item-name?category=${categoryId}`,
-        {}
-      );
-      if (response.success) {
-        setItemNames(response.data);
-      }
-    } catch (error) {}
-  };
-
-  const fetchSubCategories = async (itemNameId) => {
-    try {
-      const response = await requestApi(
-        "GET",
-        `/api/structure/sub-category?item_name=${itemNameId}`,
-        {}
-      );
-      if (response.success) {
-        setSubCategories(response.data);
-      }
-    } catch (error) {}
-  };
-
-  const fetchBrands = async (subCategoryId) => {
-    try {
-      const response = await requestApi(
-        "GET",
-        `/api/structure/brand?sub_category=${subCategoryId}`,
-        {}
-      );
-      if (response.success) {
-        setBrands(response.data);
-      }
-    } catch (error) {}
-  };
-
-  const fetchModels = async (brandId) => {
-    try {
-      const response = await requestApi(
-        "GET",
-        `/api/structure/model?brand=${brandId}`,
-        {}
-      );
-      if (response.success) {
-        setModels(response.data);
-      }
-    } catch (error) {}
-  };
-
-  const fetchColors = async (modelId) => {
-    try {
-      const response = await requestApi(
-        "GET",
-        `/api/structure/color?model=${modelId}`,
-        {}
-      );
-      if (response.success) {
-        setColors(response.data);
-      }
-    } catch (error) {}
-  };
-
-  const fetchSizes = async (colorId) => {
-    try {
-      const response = await requestApi("GET", `/api/structure/size?color=${colorId}`, {});
-      if (response.success) setSizes(response.data);
-    } catch (error) {}
-  };
-
-  const fetchOccasions = async (sizeId) => {
-    try {
-      const response = await requestApi("GET", `/api/structure/occasion?size=${sizeId}`, {});
-      if (response.success) setOccasions(response.data);
-    } catch (error) {}
-  };
-
-  const fetchTypes = async (occasionId) => {
-    try {
-      const response = await requestApi("GET", `/api/structure/type?occasion=${occasionId}`, {});
-      if (response.success) setTypes(response.data);
-    } catch (error) {}
-  };
-
-
-  const handleEditModalClose = () => {
-    setEditModalOpen(false);
-    setSelectEditCategory(null);
-    setEditedName("");
-  };
-
-  const handleNameChange = (event) => {
-    setEditedName(event.target.value);
-  };
-
-  // edit and delete category
-  const handleEdit = (id, name) => {
-    setSelectEditCategory({ id, name });
-    setEditedName(name);
-    setEditModalOpen(true);
-    console.log(id);
-  };
-  const handleUpdateCategory = async () => {
-    try {
-      const response = await requestApi("PUT", `/api/structure/category`, {
-        id: selectEditCategory.id,
-        name: editedName,
-      });
-      console.log(response.data.message);
-      const updatedCategory = { ...selectEditCategory, name: editedName };
-      console.log(editedName);
-      setCategories(
-        categories.map((cat) =>
-          cat.id === selectEditCategory.id ? updatedCategory : cat
-        )
-      );
-      notifySuccess(`Category updated successfully`);
-      handleEditModalClose();
-    } catch (error) {
-      console.error("Error updating category:", error);
-      notifyError("Error updating category");
-    }
-  };
-  const handleDelete = async (id, name) => {
-    try {
-      const confirmDelete = window.confirm(
-        `Are you sure you want to delete category "${name}"?`
-      );
-
-      if (confirmDelete) {
-        const response = await requestApi(
-          "DELETE",
-          `/api/structure/category?id=${id}`
-        );
-        console.log(response.data.message);
-        setCategories(categories.filter((cat) => cat.id !== id));
-
-        console.log(id);
-        notifySuccess(`Category "${name}" deleted successfully`);
-      }
-    } catch (error) {
-      console.error("Error deleting category:", error);
-      notifyError("Error deleting category");
-    }
-  };
-
-  // item edit and delete
-
-  const handleItemNameChange = (event) => {
-    setEditedItemName(event.target.value);
-  };
-  const handleItemEdit = (id, name) => {
-    setSelectedEditItem({ id, name });
-    setEditedItemName(name);
-    setEditModalItemOpen(true);
-  };
-
-  const handleEditItemModalClose = () => {
-    setEditModalItemOpen(false);
-    setSelectedEditItem(null);
-    setEditedItemName("");
-  };
-
-  const handleUpdateItem = async () => {
-    try {
-      const response = await requestApi("PUT", `/api/structure/item-name`, {
-        id: selectedEditItem.id,
-        name: editedItemName,
-      });
-      console.log(response.data.message);
-      const updatedItem = { ...selectedEditItem, name: editedItemName };
-      setItemNames(
-        itemNames.map((cat) =>
-          cat.id === selectedEditItem.id ? updatedItem : cat
-        )
-      );
-      notifySuccess(`Item updated successfully`);
-      handleEditItemModalClose();
-    } catch (error) {
-      console.error("Error updating Item:", error);
-      notifyError("Error updating Item");
-    }
-  };
-
-  const handleDeleteItem = async (id, name) => {
-    try {
-      const confrimdelete = window.confirm(
-        `Are you sure you want to delete ItemName "${name}"?`
-      );
-      if (confrimdelete) {
-        const response = await requestApi(
-          "DELETE",
-          `/api/structure/item-name?id=${id}`
-        );
-        console.log(response.data.message);
-        setItemNames(itemNames.filter((cat) => cat.id !== id));
-        notifySuccess(`Item "${name}" deleted successfully`);
-      }
-    } catch (error) {
-      console.error("Error deleting category:", error);
-      notifyError("Error deleting category");
-    }
-  };
-
-  // edit and delete sub
-  const handleSubNameChange = (event) => {
-    setEditedSubName(event.target.value);
-  };
-
-  const handleSubEdit = (id, name) => {
-    setSelectedEditSub({ id, name });
-    setEditedSubName(name);
-    setEditModalSubOpen(true);
-  };
-
-  const handleEditModalSubClose = () => {
-    setEditModalSubOpen(false);
-    setSelectedEditSub(null);
-    setEditedSubName("");
-  };
-
-  const handleUpdateSubCategory = async () => {
-    try {
-      const response = await requestApi("PUT", `/api/structure/sub-category`, {
-        id: selectedEditSub.id,
-        name: editSubName,
-      });
-      console.log(response.data.message);
-      const updatedSub = { ...selectedEditSub, name: editSubName };
-      setSubCategories(
-        subCategories.map((cat) =>
-          cat.id === selectedEditSub.id ? updatedSub : cat
-        )
-      );
-      notifySuccess(`Sub Category updated successfully`);
-      handleEditModalSubClose();
-    } catch (error) {
-      console.error("Error updating Sub category:", error);
-      notifyError("Error updating Sub category");
-    }
-  };
-
-  const handleSubDelete = async (id, name) => {
-    try {
-      const confrimdelete = window.confirm(
-        `Are you sure you want to delete sub-category "${name}"?`
-      );
-      if (confrimdelete) {
-        const response = await requestApi(
-          "DELETE",
-          `/api/structure/sub-category?id=${id}`
-        );
-        console.log(response.data.message);
-        setSubCategories(subCategories.filter((cat) => cat.id !== id));
-        notifySuccess(`Sub Category "${name}" deleted successfully`);
-      }
-    } catch (error) {
-      console.error("Error deleting Subcategory:", error);
-      notifyError("Error deleting Sub category");
-    }
-  };
-
-  // edit and delete brand
-  const handleBrandEdit = (id, name) => {
-    setSelectedEditBrand({ id, name });
-    setEditedBrandName(name);
-    setEditModalBrandOpen(true);
-  };
-
-  const handleEditModalBrandClose = () => {
-    setEditModalBrandOpen(false);
-    setSelectedEditBrand(null);
-    setEditedBrandName("");
-  };
-
-  const handleBrandNameChange = (event) => {
-    setEditedBrandName(event.target.value);
-  };
-
-  const handleUpdateBrandCategory = async () => {
-    try {
-      const response = await requestApi("PUT", `/api/structure/brand`, {
-        id: selectedEditBrand.id,
-        name: editBrandName,
-      });
-      console.log(response.data.message);
-      const updateBrand = { ...selectedEditBrand, name: editBrandName };
-      setBrands(
-        brands.map((mod) =>
-          mod.id === selectedEditBrand.id ? updateBrand : mod
-        )
-      );
-      notifySuccess(`Brand updated successfully`);
-      handleEditModalBrandClose();
-    } catch (error) {
-      console.error("Error updating Brand:", error);
-      notifyError("Error updating Brand");
-    }
-  };
-
-  const handleBrandDelete = async (id, name) => {
-    try {
-      const confrimdelete = window.confirm(
-        `Are you sure you wnat to delete brand "${name}"?`
-      );
-      if (confrimdelete) {
-        const response = await requestApi(
-          "DELETE",
-          `/api/structure/brand?id=${id}`
-        );
-        console.log(response.data.message);
-        setBrands(brands.filter((mod) => mod.id !== id));
-        notifySuccess(`Brand "${name}" deleted successfully`);
-      }
-    } catch (error) {
-      console.error("Error deleting Brand:", error);
-      notifyError("Error deleting Brand");
-    }
-  };
-
-  // edit and delete model
-  const handleModelEdit = (id, name) => {
-    setSelectedEditModel({ id, name });
-    setEditedModelName(name);
-    setEditModalModelOpen(true);
-  };
-
-  const handleEditModalModelClose = () => {
-    setEditModalModelOpen(false);
-    setSelectedEditModel(null);
-    setEditedModelName("");
-  };
-
-  const handleNameModelChange = (event) => {
-    setEditedModelName(event.target.value);
-  };
-
-  const handleUpdateModelCategory = async () => {
-    try {
-      const response = await requestApi("PUT", `/api/structure/model`, {
-        id: selectedEditModel.id,
-        name: editModelName,
-      });
-      console.log(response.data.message);
-      const updatedModal = { ...selectedEditModel, name: editModelName };
-      setModels(
-        models.map((mod) =>
-          mod.id === selectedEditModel.id ? updatedModal : mod
-        )
-      );
-      notifySuccess(`Model updated successfully`);
-      handleEditModalModelClose();
-    } catch (error) {
-      console.error("Error updating Model:", error);
-      notifyError("Error updating Model");
-    }
-  };
-
-  const handleModelDelete = async (id, name) => {
-    try {
-      const confrimdelete = window.confirm(
-        `Are you sure you want to delete "${name}?"`
-      );
-      if (confrimdelete) {
-        const response = await requestApi(
-          "DELETE",
-          `/api/structure/model?id=${id}`
-        );
-        console.log(response.data.message);
-        setModels(models.filter((mod) => mod.id !== id));
-        notifySuccess(`Model "${name}" deleted successfully`);
-      }
-    } catch (error) {
-      console.error("Error deleting Model:", error);
-      notifyError("Error deleting Model");
-    }
-  };
-
-  // edit and delete color
-  const handleColorEdit = (id, name) => {
-    setSelectedEditColor({ id, name });
-    setEditedColorName(name);
-    setEditModalColorOpen(true);
-  };
-
-  const handleEditModalColorClose = () => {
-    setEditModalColorOpen(false);
-    setSelectedEditColor(null);
-    setEditedColorName("");
-  };
-
-  const handleNameColorChange = (event) => {
-    setEditedColorName(event.target.value);
-  };
-  const handleUpdateColorCategory = async () => {
-    try {
-      const response = await requestApi("PUT", `/api/structure/color`, {
-        id: selectedEditColor.id,
-        name: editColorName,
-      });
-      console.log(response.data.message);
-      const updatedColor = { ...selectedEditColor, name: editColorName };
-      setColors(
-        colors.map((col) =>
-          col.id === selectedEditColor.id ? updatedColor : col
-        )
-      );
-      notifySuccess(`Color updated successfully`);
-      handleEditModalColorClose();
-    } catch (error) {
-      console.error("Error updating Color:", error);
-      notifyError("Error updating Color");
-    }
-  };
-
-  const handleColorDelete = async (id, name) => {
-    try {
-      const confrimdelete = window.confirm(
-        `Are you sure you wnat to delete color "${name}"?`
-      );
-      if (confrimdelete) {
-        const response = await requestApi(
-          "DELETE",
-          `/api/structure/color?id=${id}`
-        );
-        console.log(response.data.message);
-        setColors(colors.filter((col) => col.id !== id));
-        notifySuccess(`Color "${name}" deleted successfully`);
-      }
-    } catch (error) {
-      console.error("Error deleting Color:", error);
-      notifyError(`Color "${name}" deleted failed`);
-    }
-  };
-
-  // edit and delete size
-  const handleSizeEdit = (id, name) => {
-    setSelectedEditSize({ id, name });
-    setEditedSizeName(name);
-    setEditModalSizeOpen(true);
-  };
-
-  const handleEditModalSizeClose = () => {
-    setEditModalSizeOpen(false);
-    setSelectedEditSize(null);
-    setEditedSizeName("");
-  };
-
-  const handleNameSizeChange = (event) => {
-    setEditedSizeName(event.target.value);
-  };
-  const handleUpdateSizeCategory = async () => {
-    try {
-      const response = await requestApi("PUT", `/api/structure/size`, {
-        id: selectedEditSize.id,
-        name: editSizeName,
-      });
-      console.log(response.data.message);
-      const updatedColor = { ...selectedEditSize, name: editSizeName };
-      setSizes(
-        sizes.map((col) =>
-          col.id === selectedEditSize.id ? updatedColor : col
-        )
-      );
-      notifySuccess(`Size updated successfully`);
-      handleEditModalSizeClose();
-    } catch (error) {
-      console.error("Error updating Size:", error);
-      notifyError("Error updating Size");
-    }
-  };
-
-  const handleSizeDelete = async (id, name) => {
-    try {
-      const confrimDelete = window.confirm(
-        `Are you sure you wnat to delete size "${name}"?`
-      );
-      if (confrimDelete) {
-        const response = await requestApi(
-          "DELETE",
-          `/api/structure/size?id=${id}`
-        );
-        console.log(response.data.message);
-        setSizes(sizes.filter((col) => col.id !== id));
-        notifySuccess(`Color "${name}" deleted successfully`);
-      }
-    } catch (error) {
-      console.error("Error deleting Size:", error);
-      notifyError(`Size "${name}" deleted failed`);
-    }
-  };
-
-  // CRUD Occasion
-  const handleOccasionEdit = (id, name) => {
-    setSelectedEditOccasion({ id, name });
-    setEditedOccasionName(name);
-    setEditModalOccasionOpen(true);
-  };
-  const handleEditModalOccasionClose = () => {
-    setEditModalOccasionOpen(false);
-    setSelectedEditOccasion(null);
-    setEditedOccasionName("");
-  };
-  const handleUpdateOccasionCategory = async () => {
-    try {
-      const response = await requestApi("PUT", `/api/structure/occasion`, { id: selectedEditOccasion.id, name: editOccasionName });
-      const updated = { ...selectedEditOccasion, name: editOccasionName };
-      setOccasions(occasions.map((o) => o.id === selectedEditOccasion.id ? updated : o));
-      notifySuccess(`Occasion updated successfully`);
-      handleEditModalOccasionClose();
-    } catch (error) {
-      notifyError("Error updating Occasion");
-    }
-  };
-  const handleOccasionDelete = async (id, name) => {
-    if (window.confirm(`Are you sure you want to delete occasion "${name}"?`)) {
-      try {
-        await requestApi("DELETE", `/api/structure/occasion?id=${id}`);
-        setOccasions(occasions.filter((o) => o.id !== id));
-        notifySuccess(`Occasion "${name}" deleted successfully`);
-      } catch (error) {
-        notifyError("Error deleting Occasion");
-      }
-    }
-  };
-
-  // CRUD Type
-  const handleTypeEdit = (id, name) => {
-    setSelectedEditType({ id, name });
-    setEditedTypeName(name);
-    setEditModalTypeOpen(true);
-  };
-  const handleEditModalTypeClose = () => {
-    setEditModalTypeOpen(false);
-    setSelectedEditType(null);
-    setEditedTypeName("");
-  };
-  const handleUpdateTypeCategory = async () => {
-    try {
-      const response = await requestApi("PUT", `/api/structure/type`, { id: selectedEditType.id, name: editTypeName });
-      const updated = { ...selectedEditType, name: editTypeName };
-      setTypes(types.map((t) => t.id === selectedEditType.id ? updated : t));
-      notifySuccess(`Type updated successfully`);
-      handleEditModalTypeClose();
-    } catch (error) {
-      notifyError("Error updating Type");
-    }
-  };
-  const handleTypeDelete = async (id, name) => {
-    if (window.confirm(`Are you sure you want to delete type "${name}"?`)) {
-      try {
-        await requestApi("DELETE", `/api/structure/type?id=${id}`);
-        setTypes(types.filter((t) => t.id !== id));
-        notifySuccess(`Type "${name}" deleted successfully`);
-      } catch (error) {
-        notifyError("Error deleting Type");
-      }
-    }
-  };
-
+// MUI Icons
+import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import AddIcon from "@mui/icons-material/Add";
+import CloseIcon from "@mui/icons-material/Close";
+import SearchIcon from "@mui/icons-material/Search";
+import UploadFileOutlinedIcon from "@mui/icons-material/UploadFileOutlined";
+import RefreshIcon from "@mui/icons-material/Refresh";
+import CheckIcon from "@mui/icons-material/Check";
+import InventoryIcon from "@mui/icons-material/Inventory";
+import LocalOfferOutlinedIcon from "@mui/icons-material/LocalOfferOutlined";
+import StraightenIcon from "@mui/icons-material/Straighten";
+import ListAltIcon from "@mui/icons-material/ListAlt";
+
+// ─────────────────────────────────────────────────────────
+// Small reusable: SelectBox
+// ─────────────────────────────────────────────────────────
+function SelectBox({ value, placeholder, onClick, disabled }) {
+  const filled = !!value;
   return (
-    <div className="dashboard-container">
-      <Navbar />
-      <div className="vandc-container">
-        <VerticalNavbar />
-        <ToastContainer />
-        <div className="dashboard-body">
-          <div className="category-page">
-            <div className="select-category-card">
-              {selectedCategory ? null : (
-                <h2 className="item-list-head">No Items Selected</h2>
-              )}
-              <div className="selected-info">
-                {selectedCategory &&
-                  (selectedCategory.image_path !== "" ? (
-                    <img
-                      src={`${apiHost}/` + selectedCategory.image_path}
-                      alt={selectedCategory.name}
-                    />
-                  ) : (
-                    <p className="image-alt-text">{selectedCategory.name}</p>
-                  ))}
-                {selectedItemName &&
-                  (selectedItemName.image_path !== "" ? (
-                    <img
-                      src={`${apiHost}/` + selectedItemName.image_path}
-                      alt={selectedItemName.name}
-                    />
-                  ) : (
-                    <p className="image-alt-text">{selectedItemName.name}</p>
-                  ))}
-                {selectedSubCategory &&
-                  (selectedSubCategory.image_path !== "" ? (
-                    <img
-                      src={`${apiHost}/` + selectedSubCategory.image_path}
-                      alt={selectedSubCategory.name}
-                    />
-                  ) : (
-                    <p className="image-alt-text">{selectedSubCategory.name}</p>
-                  ))}
-                {selectedBrand &&
-                  (selectedBrand.image_path !== "" ? (
-                    <img
-                      src={`${apiHost}/` + selectedBrand.image_path}
-                      alt={selectedBrand.name}
-                    />
-                  ) : (
-                    <p className="image-alt-text">{selectedBrand.name}</p>
-                  ))}
-                {selectedModel &&
-                  (selectedModel.image_path !== "" ? (
-                    <p className="image-alt-text">{selectedModel.name}</p>
-                  ) : (
-                    <p className="image-alt-text">{selectedModel.name}</p>
-                  ))}
-                {selectedColor &&
-                  (selectedColor.image_path !== "" ? (
-                    <p className="image-alt-text">{selectedColor.name}</p>
-                  ) : (
-                    <p className="image-alt-text">{selectedColor.name}</p>
-                  ))}
-              </div>
-            </div>
-
-            <div className="search-and-product-type-grid">
-              <div className="search-container">
-                <InputBox
-                  label={
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        color: "var(--text)",
-                      }}
-                    >
-                      <SearchSharpIcon
-                        sx={{ marginRight: 1, color: "var(--text)" }}
-                      />
-                      Search
-                    </div>
-                  }
-                  size="small"
-                  type="text"
-                  value={searchQuery}
-                  onChange={handleSearchInputChange}
-                  sx={{ width: "100%" }}
-                />
-              </div>
-
-              {isLoading && <div className="loader"></div>}
-              {!isLoading && (
-                <div className="card-container">
-                  {/* Categories */}
-                  {selectedCategory === null && (
-                    <div className="card1">
-                      <div className="name-and-icon">
-                        <h2>Select a Category</h2>
-                        <AddBoxRoundedIcon
-                          sx={{ fontSize: 35, color: "var(--button)" }}
-                          className="add-icon"
-                          onClick={handleCategoryOpen}
-                        />
-                      </div>
-                      <div className="card">
-                        <div className="flex-container">
-                          {filterData(categories).map((category) => (
-                            <div key={category.id} className="c-cards">
-                              <div className="item-card">
-                                <div
-                                  className="category-info"
-                                  onClick={() => handleSelectCategory(category)}
-                                >
-                                  <div className="names">{category.name}</div>
-                                  {category.image_path && (
-                                    <img
-                                      src={`${apiHost}/` + category.image_path}
-                                      alt={category.name}
-                                    />
-                                  )}
-                                </div>
-                                <div className="edit-delete">
-                                  <div className="ed-icon">
-                                    <div className="edit-delete-icon">
-                                      <EditIcon
-                                        style={{
-                                          color: "#ffff",
-                                          cursor: "pointer",
-                                        }}
-                                        onClick={() =>
-                                          handleEdit(category.id, category.name)
-                                        }
-                                      />
-                                    </div>
-                                    <div className="edit-delete-icon">
-                                      <DeleteIcon
-                                        style={{
-                                          color: "#ffff",
-                                          cursor: "pointer",
-                                        }}
-                                        onClick={() =>
-                                          handleDelete(
-                                            category.id,
-                                            category.name
-                                          )
-                                        }
-                                      />
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                        <Modal
-                          open={editModalOpen}
-                          onClose={handleEditModalClose}
-                          aria-labelledby="modal-modal-title"
-                          aria-describedby="modal-modal-description"
-                        >
-                          <div
-                            style={{
-                              position: "absolute",
-                              width: "60%",
-                              top: "50%",
-                              left: "50%",
-                              transform: "translate(-50%, -50%)",
-                              backgroundColor: "var(--background-1)",
-                              boxShadow: 24,
-                              padding: "30px 60px",
-                              display: "flex",
-                              flexDirection: "column",
-                              color: "var(--text)",
-                              gap: "10px",
-                            }}
-                          >
-                            <h2>Edit Category</h2>
-                            <InputBox
-                              label="Category Name"
-                              value={editedName}
-                              size="small"
-                              sx={{ width: "100%" }}
-                              onChange={handleNameChange}
-                            />
-                            <button
-                              className="button-in-dialog"
-                              variant="contained"
-                              onClick={handleUpdateCategory}
-                            >
-                              SUBMIT
-                            </button>
-                          </div>
-                        </Modal>
-                      </div>
-                    </div>
-                  )}
-                  {/* Item Names */}
-                  {selectedCategory && selectedItemName === null && (
-                    <div className="card1">
-                      <div className="name-and-icon">
-                        <ArrowBackIcon
-                          sx={{ cursor: "pointer", color: "#178a84" }}
-                          onClick={() => {
-                            setSelectedCategory(null); 
-                            setSelectedItemName(null);
-                          }}
-                        />
-                        <h2>
-                          <center>Item Name</center>
-                        </h2>
-                        <AddBoxRoundedIcon
-                          sx={{ fontSize: 35, color: "var(--button)" }}
-                          className="add-icon"
-                          onClick={handleItemOpen}
-                        />
-                      </div>
-                      <div className="card">
-                        <div className="flex-container">
-                          {filterData(itemNames).map((itemName) => (
-                            <div className="c-cards">
-                              <div key={itemName.id} className="item-card">
-                                <div
-                                  className="category-info names"
-                                  onClick={() => handleSelectItemName(itemName)}
-                                >
-                                  {itemName.name}
-                                  {itemName.image_path && (
-                                    <img
-                                      src={`${apiHost}/` + itemName.image_path}
-                                      alt={itemName.name}
-                                    />
-                                  )}
-                                </div>
-
-                                <div className="edit-delete">
-                                  <div className="ed-icon">
-                                    <div className="edit-delete-icon">
-                                      <EditIcon
-                                        style={{
-                                          color: "#ffff",
-                                          cursor: "pointer",
-                                        }}
-                                        onClick={() =>
-                                          handleItemEdit(
-                                            itemName.id,
-                                            itemName.name
-                                          )
-                                        }
-                                      />
-                                    </div>
-                                    <div className="edit-delete-icon">
-                                      <DeleteIcon
-                                        style={{
-                                          color: "#ffff",
-                                          cursor: "pointer",
-                                        }}
-                                        onClick={() =>
-                                          handleDeleteItem(
-                                            itemName.id,
-                                            itemName.name
-                                          )
-                                        }
-                                      />
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                        <Modal
-                          open={editModalItemOpen}
-                          onClose={handleEditItemModalClose}
-                          aria-labelledby="modal-modal-title"
-                          aria-describedby="modal-modal-description"
-                        >
-                          <div
-                            style={{
-                              position: "absolute",
-                              top: "50%",
-                              left: "50%",
-                              transform: "translate(-50%, -50%)",
-                              backgroundColor: "var(--background-1)",
-                              boxShadow: 24,
-                              padding: "30px 60px",
-                              display: "flex",
-                              flexDirection: "column",
-                              color: "var(--text)",
-                              gap: "10px",
-                            }}
-                          >
-                            <h2>Edit Item Name</h2>
-                            <InputBox
-                              label="Category Name"
-                              value={editedItemName}
-                              size="small"
-                              sx={{ width: "100%" }}
-                              onChange={handleItemNameChange}
-                            />
-                            <button
-                              variant="contained"
-                              onClick={handleUpdateItem}
-                              className="button-in-dialog"
-                            >
-                              SUBMIT
-                            </button>
-                          </div>
-                        </Modal>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Sub Categories */}
-                  {selectedItemName && selectedSubCategory === null && (
-                    <div className="card1">
-                      <div className="name-and-icon">
-                        <ArrowBackIcon
-                          sx={{ cursor: "pointer", color: "#178a84" }}
-                          onClick={() => {
-                            setSelectedItemName(null);
-                            setSelectedSubCategory(null); 
-                          }}
-                        />
-
-                        <h2>
-                          <center>Select a Sub-Category</center>
-                        </h2>
-                        <AddBoxRoundedIcon
-                          sx={{ fontSize: 35, color: "var(--button)" }}
-                          className="add-icon"
-                          onClick={handleSubOpen}
-                        />
-                      </div>
-                      <div className="card">
-                        <div className="flex-container">
-                          {filterData(subCategories).map((subCategory) => (
-                            <div key={subCategory.id} className="c-cards">
-                              <div key={subCategory.id} className="item-card">
-                                <div
-                                  className="category-info names"
-                                  onClick={() =>
-                                    handleSelectSubCategory(subCategory)
-                                  }
-                                >
-                                  {subCategory.name}
-                                  {subCategory.image_path && (
-                                    <img
-                                      src={
-                                        `${apiHost}/` + subCategory.image_path
-                                      }
-                                      alt={subCategory.name}
-                                    />
-                                  )}
-                                </div>
-                                <div className="edit-delete">
-                                  <div className="ed-icon">
-                                    <div className="edit-delete-icon">
-                                      <EditIcon
-                                        style={{
-                                          color: "#ffff",
-                                          cursor: "pointer",
-                                        }}
-                                        onClick={() =>
-                                          handleSubEdit(
-                                            subCategory.id,
-                                            subCategory.name
-                                          )
-                                        }
-                                      />
-                                    </div>
-                                    <div className="edit-delete-icon">
-                                      <DeleteIcon
-                                        style={{
-                                          color: "#ffff",
-                                          cursor: "pointer",
-                                        }}
-                                        onClick={() =>
-                                          handleSubDelete(
-                                            subCategory.id,
-                                            subCategory.name
-                                          )
-                                        }
-                                      />
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                        <Modal
-                          open={editModalSubOpen}
-                          onClose={handleEditModalClose}
-                          aria-labelledby="modal-modal-title"
-                          aria-describedby="modal-modal-description"
-                        >
-                          <div
-                            style={{
-                              position: "absolute",
-                              width: "60%",
-                              top: "50%",
-                              left: "50%",
-                              transform: "translate(-50%, -50%)",
-                              backgroundColor: "var(--background-1)",
-                              boxShadow: 24,
-                              padding: "30px 60px",
-                              display: "flex",
-                              flexDirection: "column",
-                              color: "var(--text)",
-                              gap: "10px",
-                            }}
-                          >
-                            <h2>Edit Sub Category</h2>
-                            <InputBox
-                              label="SubCategory"
-                              value={editSubName}
-                              size="small"
-                              sx={{ width: "100%" }}
-                              onChange={handleSubNameChange}
-                            />
-                            <button
-                              className="button-in-dialog"
-                              onClick={handleUpdateSubCategory}
-                            >
-                              SUBMIT
-                            </button>
-                          </div>
-                        </Modal>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Brands */}
-                  {selectedSubCategory && selectedBrand === null && (
-                    <div className="card1">
-                      <div className="name-and-icon">
-                        <ArrowBackIcon
-                          sx={{ cursor: "pointer", color: "#178a84" }}
-                          onClick={() => {
-                            setSelectedSubCategory(null);
-                            setSelectedBrand(null); 
-                          }}
-                        />
-
-                        <h2>
-                          <center>Select a Brand</center>
-                        </h2>
-
-                        <AddBoxRoundedIcon
-                          sx={{ fontSize: 35, color: "var(--button)" }}
-                          className="add-icon"
-                          onClick={handleBrandOpen}
-                        />
-                      </div>
-                      <div className="card">
-                        <div className="flex-container">
-                          {filterData(brands).map((brand) => (
-                            <div key={brand.id} className="c-cards">
-                              <div className="item-card">
-                                <div
-                                  className="category-info names"
-                                  onClick={() => handleSelectBrand(brand)}
-                                >
-                                  {brand.name}
-                                  {brand.image_path && (
-                                    <img
-                                      src={`${apiHost}/` + brand.image_path}
-                                      alt={brand.name}
-                                    />
-                                  )}
-                                </div>
-                                <div className="edit-delete">
-                                  <div className="ed-icon">
-                                    <div className="edit-delete-icon">
-                                      <EditIcon
-                                        style={{
-                                          color: "#ffff",
-                                          cursor: "pointer",
-                                        }}
-                                        onClick={() =>
-                                          handleBrandEdit(brand.id, brand.name)
-                                        }
-                                      />
-                                    </div>
-                                    <div className="edit-delete-icon">
-                                      <DeleteIcon
-                                        style={{
-                                          color: "#ffff",
-                                          cursor: "pointer",
-                                        }}
-                                        onClick={() =>
-                                          handleBrandDelete(
-                                            brand.id,
-                                            brand.name
-                                          )
-                                        }
-                                      />
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                        <Modal
-                          open={editModalBrandOpen}
-                          onClose={handleEditModalBrandClose}
-                          aria-labelledby="modal-modal-title"
-                          aria-describedby="modal-modal-description"
-                        >
-                          <div
-                            style={{
-                              position: "absolute",
-                              width: "60%",
-                              top: "50%",
-                              left: "50%",
-                              transform: "translate(-50%, -50%)",
-                              backgroundColor: "var(--background-1)",
-                              boxShadow: 24,
-                              padding: "30px 60px",
-                              display: "flex",
-                              flexDirection: "column",
-                              color: "var(--text)",
-                              gap: "10px",
-                            }}
-                          >
-                            <h2>Edit Brand</h2>
-                            <InputBox
-                              label="Brand Name"
-                              value={editBrandName}
-                              size="small"
-                              sx={{ width: "100%" }}
-                              onChange={handleBrandNameChange}
-                            />
-                            <button
-                              className="button-in-dialog"
-                              onClick={handleUpdateBrandCategory}
-                            >
-                              SUBMIT
-                            </button>
-                          </div>
-                        </Modal>
-                      </div>
-                    </div>
-                  )}
-
-                  {selectedBrand && selectedModel === null && (
-                    <div className="card1">
-                      <div className="name-and-icon">
-                        <ArrowBackIcon
-                          sx={{ cursor: "pointer", color: "#178a84" }}
-                          onClick={() => {
-                            setSelectedModel(null); 
-                            setSelectedBrand(null); 
-                          }}
-                        />
-
-                        <h2>
-                          <center>Select a Model</center>
-                        </h2>
-
-                        <AddBoxRoundedIcon
-                          sx={{ fontSize: 35, color: "var(--button)" }}
-                          className="add-icon"
-                          onClick={handleModelOpen}
-                        />
-                      </div>
-                      <div className="card">
-                        <div className="flex-container">
-                          {filterData(models).map((model) => (
-                            <div key={model.id} className="c-cards">
-                              <div className="item-card">
-                                <div
-                                  className="category-info names"
-                                  onClick={() => handleSelectModel(model)}
-                                >
-                                  {model.name}
-                                  {model.image_path && (
-                                    <img
-                                      src={`${apiHost}/` + model.image_path}
-                                      alt={model.name}
-                                    />
-                                  )}
-                                </div>
-                                <div className="edit-delete">
-                                  <div className="ed-icon">
-                                    <div className="edit-delete-icon">
-                                      <EditIcon
-                                        style={{
-                                          color: "#ffff",
-                                          cursor: "pointer",
-                                        }}
-                                        onClick={() =>
-                                          handleModelEdit(model.id, model.name)
-                                        }
-                                      />
-                                    </div>
-                                    <div className="edit-delete-icon">
-                                      <DeleteIcon
-                                        style={{
-                                          color: "#ffff",
-                                          cursor: "pointer",
-                                        }}
-                                        onClick={() =>
-                                          handleModelDelete(
-                                            model.id,
-                                            model.name
-                                          )
-                                        }
-                                      />
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                        <Modal
-                          open={editModalModelOpen}
-                          onClose={handleEditModalModelClose}
-                          aria-labelledby="modal-modal-title"
-                          aria-describedby="modal-modal-description"
-                        >
-                          <div
-                            style={{
-                              position: "absolute",
-                              width: "60%",
-                              top: "50%",
-                              left: "50%",
-                              transform: "translate(-50%, -50%)",
-                              backgroundColor: "var(--background-1)",
-                              boxShadow: 24,
-                              padding: "30px 60px",
-                              display: "flex",
-                              flexDirection: "column",
-                              color: "var(--text)",
-                              gap: "10px",
-                            }}
-                          >
-                            <h2>Edit Model</h2>
-                            <InputBox
-                              label="Brand Name"
-                              value={editModelName}
-                              size="small"
-                              sx={{ width: "100%" }}
-                              onChange={handleNameModelChange}
-                            />
-                            <button
-                              className="button-in-dialog"
-                              onClick={handleUpdateModelCategory}
-                            >
-                              SUBMIT
-                            </button>
-                          </div>
-                        </Modal>
-                      </div>
-                    </div>
-                  )}
-                  {selectedModel && selectedColor === null && (
-                    <div className="card1">
-                      <div className="name-and-icon">
-                        <ArrowBackIcon
-                          sx={{ cursor: "pointer", color: "#178a84" }}
-                          onClick={() => {
-                            setSelectedModel(null); 
-                            setSelectedColor(null);
-                          }}
-                        />
-
-                        <h2>
-                          <center>Select a Color</center>
-                        </h2>
-
-                        <AddBoxRoundedIcon
-                          sx={{ fontSize: 35, color: "var(--button)" }}
-                          className="add-icon"
-                          onClick={handleColorOpen}
-                        />
-                      </div>
-                      <div className="card">
-                        <div className="flex-container">
-                          {filterData(colors).map((color) => (
-                            <div key={color.id} className="c-cards">
-                              <div className="item-card">
-                                <div
-                                  className="category-info names"
-                                  onClick={() => handleSelectColor(color)}
-                                >
-                                  {color.name}
-                                  {color.image_path && (
-                                    <img
-                                      src={`${apiHost}/` + color.image_path}
-                                      alt={color.name}
-                                    />
-                                  )}
-                                </div>
-                                <div className="edit-delete">
-                                  <div className="ed-icon">
-                                    <div className="edit-delete-icon">
-                                      <EditIcon
-                                        style={{
-                                          color: "#ffff",
-                                          cursor: "pointer",
-                                        }}
-                                        onClick={() =>
-                                          handleColorEdit(color.id, color.name)
-                                        }
-                                      />
-                                    </div>
-                                    <div className="edit-delete-icon">
-                                      <DeleteIcon
-                                        style={{
-                                          color: "#ffff",
-                                          cursor: "pointer",
-                                        }}
-                                        onClick={() =>
-                                          handleColorDelete(
-                                            color.id,
-                                            color.name
-                                          )
-                                        }
-                                      />
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                        <Modal
-                          open={editModalColorOpen}
-                          onClose={handleEditModalColorClose}
-                          aria-labelledby="modal-modal-title"
-                          aria-describedby="modal-modal-description"
-                        >
-                          <div
-                            style={{
-                              position: "absolute",
-                              width: "60%",
-                              top: "50%",
-                              left: "50%",
-                              transform: "translate(-50%, -50%)",
-                              backgroundColor: "var(--background-1)",
-                              boxShadow: 24,
-                              padding: "30px 60px",
-                              display: "flex",
-                              flexDirection: "column",
-                              color: "var(--text)",
-                              gap: "10px",
-                            }}
-                          >
-                            <h2>Edit Color</h2>
-                            <InputBox
-                              label="Brand Name"
-                              value={editColorName}
-                              size="small"
-                              sx={{ width: "100%" }}
-                              onChange={handleNameColorChange}
-                            />
-                            <button
-                              className="button-in-dialog"
-                              onClick={handleUpdateColorCategory}
-                            >
-                              SUBMIT
-                            </button>
-                          </div>
-                        </Modal>
-                      </div>
-                    </div>
-                  )}
-
-                  {showSizes && (
-                    <div className="card1">
-                      <div className="name-and-icon">
-                        <ArrowBackIcon sx={{ cursor: "pointer", color: "#178a84" }} onClick={() => { setShowSizes(false); setSelectedColor(null); setSelectedSize(null); }} />
-                        <h2><center>Select a Size</center></h2>
-                        <AddBoxRoundedIcon sx={{ fontSize: 35, color: "var(--button)" }} className="add-icon" onClick={handleSizeOpen} />
-                      </div>
-                      <div className="card">
-                        <div className="flex-container">
-                          {filterData(sizes).map((size) => (
-                            <div key={size.id} className="c-cards">
-                              <div className="item-card">
-                                <div className="category-info names" onClick={() => handleSelectSize(size)}>{size.name}</div>
-                                <div className="edit-delete">
-                                  <div className="ed-icon">
-                                    <div className="edit-delete-icon"><EditIcon style={{ color: "#ffff", cursor: "pointer" }} onClick={() => handleSizeEdit(size.id, size.name)} /></div>
-                                    <div className="edit-delete-icon"><DeleteIcon style={{ color: "#ffff", cursor: "pointer" }} onClick={() => handleSizeDelete(size.id, size.name)} /></div>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                        <Modal open={editModalSizeOpen} onClose={handleEditModalSizeClose}>
-                          <div style={{ position: "absolute", width: "60%", top: "50%", left: "50%", transform: "translate(-50%, -50%)", backgroundColor: "var(--background-1)", boxShadow: 24, padding: "30px 60px", display: "flex", flexDirection: "column", color: "var(--text)", gap: "10px" }}>
-                            <h2>Edit Size</h2>
-                            <InputBox label="Size Name" value={editSizeName} size="small" sx={{ width: "100%" }} onChange={handleNameSizeChange} />
-                            <button className="button-in-dialog" onClick={handleUpdateSizeCategory}>SUBMIT</button>
-                          </div>
-                        </Modal>
-                      </div>
-                    </div>
-                  )}
-
-                  {showOccasions && (
-                    <div className="card1">
-                      <div className="name-and-icon">
-                        <ArrowBackIcon sx={{ cursor: "pointer", color: "#178a84" }} onClick={() => { setShowOccasions(false); setShowSizes(true); setSelectedSize(null); setSelectedOccasion(null); }} />
-                        <h2><center>Select an Occasion</center></h2>
-                        <AddBoxRoundedIcon sx={{ fontSize: 35, color: "var(--button)" }} className="add-icon" onClick={handleOccasionOpen} />
-                      </div>
-                      <div className="card">
-                        <div className="flex-container">
-                          {filterData(occasions).map((occ) => (
-                            <div key={occ.id} className="c-cards">
-                              <div className="item-card">
-                                <div className="category-info names" onClick={() => handleSelectOccasion(occ)}>{occ.name}</div>
-                                <div className="edit-delete">
-                                  <div className="ed-icon">
-                                    <div className="edit-delete-icon"><EditIcon style={{ color: "#ffff", cursor: "pointer" }} onClick={() => handleOccasionEdit(occ.id, occ.name)} /></div>
-                                    <div className="edit-delete-icon"><DeleteIcon style={{ color: "#ffff", cursor: "pointer" }} onClick={() => handleOccasionDelete(occ.id, occ.name)} /></div>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {showTypes && (
-                    <div className="card1">
-                      <div className="name-and-icon">
-                        <ArrowBackIcon sx={{ cursor: "pointer", color: "#178a84" }} onClick={() => { setShowTypes(false); setShowOccasions(true); setSelectedOccasion(null); setSelectedType(null); }} />
-                        <h2><center>Select a Type</center></h2>
-                        <AddBoxRoundedIcon sx={{ fontSize: 35, color: "var(--button)" }} className="add-icon" onClick={handleTypeOpen} />
-                      </div>
-                      <div className="card">
-                        <div className="flex-container">
-                          {filterData(types).map((typ) => (
-                            <div key={typ.id} className="c-cards">
-                              <div className="item-card">
-                                <div className="category-info names" onClick={() => handleSelectType(typ)}>{typ.name}</div>
-                                <div className="edit-delete">
-                                  <div className="ed-icon">
-                                    <div className="edit-delete-icon"><EditIcon style={{ color: "#ffff", cursor: "pointer" }} onClick={() => handleTypeEdit(typ.id, typ.name)} /></div>
-                                    <div className="edit-delete-icon"><DeleteIcon style={{ color: "#ffff", cursor: "pointer" }} onClick={() => handleTypeDelete(typ.id, typ.name)} /></div>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-
-                  {showPricing && (
-                    <div className="pricing-page">
-                      <div className="pricing-header">
-                        <ArrowBackIcon
-                          sx={{ cursor: "pointer", color: "#178a84", fontSize: 28 }}
-                          onClick={() => { setShowPricing(false); setShowTypes(true); setSelectedType(null); }}
-                        />
-                        <h2 className="pricing-title">Pricing Details</h2>
-                        <div style={{ width: 28 }} />
-                      </div>
-
-                      <div className="pricing-card">
-                        <div className="pricing-grid">
-                          <div className="pricing-field">
-                            <label className="pricing-label">S.No</label>
-                            <InputBox type="number" id="bill" value={bill} size="small" sx={{ width: "100%" }} onChange={(e) => setBill(e.target.value)} required />
-                          </div>
-                          <div className="pricing-field">
-                            <label className="pricing-label">Quantity</label>
-                            <InputBox type="number" id="quantity" value={quantity} size="small" sx={{ width: "100%" }} onChange={(e) => setQuantity(e.target.value)} required />
-                          </div>
-                          <div className="pricing-field">
-                            <label className="pricing-label">Selling Price</label>
-                            <InputBox type="number" id="sellingprice" size="small" value={sellingprice} sx={{ width: "100%" }} onChange={handleSellingPriceChange} required />
-                          </div>
-                          <div className="pricing-field">
-                            <label className="pricing-label">MRP</label>
-                            <InputBox type="number" id="mrp" value={mrp} required sx={{ width: "100%" }} onChange={handleMrpPriceChange} size="small" />
-                          </div>
-                          <div className="pricing-field">
-                            <label className="pricing-label">Purchase Price</label>
-                            <InputBox type="number" id="purchaseprice" size="small" value={purchaseprice} sx={{ width: "100%" }} onChange={(e) => handleNumberChange(e, setPurchasePrice)} />
-                          </div>
-                        </div>
-
-                        <div className="pricing-actions">
-                          <button
-                            type="button"
-                            className="action-btn action-btn--generate"
-                            onClick={handleOpenPreview}
-                          >
-                            👁 Preview & Submit
-                          </button>
-                        
-                        </div>
-                      </div>
-
-                      {recentAddedList.length > 0 && (
-                        <div className="recent-added-container">
-                          <div className="recent-added-header">
-                            <h3>Recently Added Products ({recentAddedList.length})</h3>
-                          </div>
-                          <div className="recent-added-table-wrap">
-                            <table className="recent-added-table">
-                              <thead>
-                                <tr>
-                                  <th>#</th>
-                                  <th>S.No / Bill</th>
-                                  <th>Product Name</th>
-                                  <th>Model</th>
-                                  <th>Color</th>
-                                  <th>Size</th>
-                                  <th>Occasion</th>
-                                  <th>Type</th>
-                                  <th>Qty</th>
-                                  <th>Selling Price</th>
-                                  <th>MRP</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {recentAddedList.map((item, idx) => (
-                                  <tr key={item.id}>
-                                    <td>{idx + 1}</td>
-                                    <td>{item.bill}</td>
-                                    <td>{item.name}</td>
-                                    <td>{item.model}</td>
-                                    <td>{item.color}</td>
-                                    <td>{item.size}</td>
-                                    <td>{item.occasion}</td>
-                                    <td>{item.type}</td>
-                                    <td><strong>{item.quantity}</strong></td>
-                                    <td>₹{item.sellingprice}</td>
-                                    <td>₹{item.mrp}</td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Product Preview Modal */}
-      <Dialog
-        fullWidth
-        maxWidth="md"
-        open={previewOpen}
-        onClose={() => !isSubmitting && setPreviewOpen(false)}
-        PaperProps={{
-          style: {
-            padding: "24px",
-            backgroundColor: "var(--background-1)",
-            borderRadius: "16px",
-            color: "var(--text)",
-            boxShadow: "0 10px 40px rgba(0, 0, 0, 0.25)",
-          },
-        }}
-      >
-        <div className="preview-modal-header">
-          <h2 style={{ margin: 0, color: "var(--button)", fontSize: "22px", fontWeight: 700 }}>
-            Product Preview
-          </h2>
-          <button
-            type="button"
-            onClick={() => !isSubmitting && setPreviewOpen(false)}
-            style={{
-              background: "transparent",
-              border: "none",
-              fontSize: "20px",
-              cursor: "pointer",
-              color: "var(--text)",
-            }}
-          >
-            ✕
-          </button>
-        </div>
-
-        <div style={{ marginTop: "16px" }}>
-          <p style={{ margin: "0 0 14px 0", fontSize: "14px", color: "var(--text)", opacity: 0.85 }}>
-            Please review the product details before submitting. Once submitted, you will stay on this page to continue adding products.
-          </p>
-
-          <div className="preview-table-container">
-            <table className="preview-table">
-              <tbody>
-                <tr>
-                  <th>S.No / Bill No</th>
-                  <td><strong>{bill || "-"}</strong></td>
-                  <th>Quantity</th>
-                  <td><strong>{quantity || "0"}</strong></td>
-                </tr>
-                <tr>
-                  <th>Product Name</th>
-                  <td colSpan="3">
-                    <strong style={{ color: "var(--button)" }}>
-                      {[
-                        selectedCategory?.name,
-                        selectedItemName?.name,
-                        selectedSubCategory?.name,
-                        selectedBrand?.name,
-                      ]
-                        .filter(Boolean)
-                        .join(" - ")}
-                    </strong>
-                  </td>
-                </tr>
-                <tr>
-                  <th>Category</th>
-                  <td>{selectedCategory?.name || "-"}</td>
-                  <th>Item Name</th>
-                  <td>{selectedItemName?.name || "-"}</td>
-                </tr>
-                <tr>
-                  <th>Sub Category</th>
-                  <td>{selectedSubCategory?.name || "-"}</td>
-                  <th>Brand</th>
-                  <td>{selectedBrand?.name || "-"}</td>
-                </tr>
-                <tr>
-                  <th>Model</th>
-                  <td>{selectedModel?.name || "-"}</td>
-                  <th>Color</th>
-                  <td>{selectedColor?.name || "-"}</td>
-                </tr>
-                <tr>
-                  <th>Size</th>
-                  <td>{selectedSize?.name || "-"}</td>
-                  <th>Occasion</th>
-                  <td>{selectedOccasion?.name || "-"}</td>
-                </tr>
-                <tr>
-                  <th>Type</th>
-                  <td>{selectedType?.name || "-"}</td>
-                  <th>Purchase Price</th>
-                  <td>₹{purchaseprice || "0"}</td>
-                </tr>
-                <tr>
-                  <th>Selling Price</th>
-                  <td>₹{sellingprice || "0"}</td>
-                  <th>MRP</th>
-                  <td>₹{mrp || "0"}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <div style={{ display: "flex", justifyContent: "flex-end", gap: "12px", marginTop: "24px" }}>
-          <button
-            type="button"
-            className="action-btn action-btn--other"
-            onClick={() => setPreviewOpen(false)}
-            disabled={isSubmitting}
-          >
-            ← Back to Edit
-          </button>
-          <button
-            type="button"
-            className="action-btn action-btn--generate"
-            onClick={handleSubmitProduct}
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? "Submitting..." : "✔ Confirm & Submit Product"}
-          </button>
-        </div>
-      </Dialog>
-
-      {/* category dialog */}
-      <div>
-        <Dialog
-          fullWidth
-          maxWidth="xs"
-          open={categoryopen}
-          onClose={handleCategoryClose}
-          PaperProps={{
-            style: {
-              padding: "16px 24px",
-              backgroundColor: "var(--background-1)",
-              borderRadius: "12px",
-            },
-          }}
-        >
-          <form onSubmit={handleCategorySubmit} style={{ width: "100%" }}>
-            <DialogTitle style={{ textAlign: "center", color: "var(--text)", padding: "10px 0" }}>
-              <h2 style={{ margin: 0 }}>Add Category</h2>
-            </DialogTitle>
-            <DialogContent style={{ padding: "8px 0" }}>
-              {renderModalTabs(categoryTab, setCategoryTab, setCategoryValue)}
-              {categoryTab === "existing" ? (
-                <CustomEditSelect
-                  label="Select Category"
-                  placeholder="Select Category"
-                  value={categoryvalue}
-                  onChange={(val) => setCategoryValue(val)}
-                  options={masterCategories.map(cat => ({ value: cat.category_name, label: cat.category_name }))}
-                />
-              ) : (
-                <InputBox
-                  label="Category Name"
-                  placeholder="Enter Category Name"
-                  value={categoryvalue}
-                  onChange={(e) => setCategoryValue(e.target.value)}
-                  size="small"
-                  fullWidth
-                />
-              )}
-              <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "24px" }}>
-                <button className="add-button-dialog" onClick={handleCategoryClose} type="button">CANCEL</button>
-                <button className="add-button-dialog" type="submit">ADD</button>
-              </div>
-            </DialogContent>
-          </form>
-        </Dialog>
-      </div>
-
-      {/* item-name dialog */}
-      <div>
-        <Dialog
-          fullWidth
-          maxWidth="xs"
-          open={itemopen}
-          onClose={handleItemClose}
-          PaperProps={{
-            style: {
-              padding: "16px 24px",
-              backgroundColor: "var(--background-1)",
-              borderRadius: "12px",
-            },
-          }}
-        >
-          <form onSubmit={handleItemSubmit} style={{ width: "100%" }}>
-            <DialogTitle style={{ textAlign: "center", color: "var(--text)", padding: "10px 0" }}>
-              <h2 style={{ margin: 0 }}>Add Item</h2>
-            </DialogTitle>
-            <DialogContent style={{ padding: "8px 0" }}>
-              {renderModalTabs(itemTab, setItemTab, setItemValue)}
-              {itemTab === "existing" ? (
-                <CustomEditSelect
-                  label="Select Item"
-                  placeholder="Select Item"
-                  value={itemvalue}
-                  onChange={(val) => setItemValue(val)}
-                  options={masterItemNames.map(i => ({ value: i.item_name, label: i.item_name }))}
-                />
-              ) : (
-                <InputBox
-                  label="Item Name"
-                  placeholder="Enter Item Name"
-                  value={itemvalue}
-                  onChange={(e) => setItemValue(e.target.value)}
-                  size="small"
-                  fullWidth
-                />
-              )}
-              <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "24px" }}>
-                <button className="add-button-dialog" onClick={handleItemClose} type="button">CANCEL</button>
-                <button className="add-button-dialog" type="submit">ADD</button>
-              </div>
-            </DialogContent>
-          </form>
-        </Dialog>
-      </div>
-
-      {/* sub-category dialog */}
-      <div>
-        <Dialog
-          fullWidth
-          maxWidth="xs"
-          open={subopen}
-          onClose={handleSubClose}
-          PaperProps={{
-            style: {
-              padding: "16px 24px",
-              backgroundColor: "var(--background-1)",
-              borderRadius: "12px",
-            },
-          }}
-        >
-          <form onSubmit={handleSubSubmit} style={{ width: "100%" }}>
-            <DialogTitle style={{ textAlign: "center", color: "var(--text)", padding: "10px 0" }}>
-              <h2 style={{ margin: 0 }}>Add Sub-Category</h2>
-            </DialogTitle>
-            <DialogContent style={{ padding: "8px 0" }}>
-              {renderModalTabs(subTab, setSubTab, setSubValue)}
-              {subTab === "existing" ? (
-                <CustomEditSelect
-                  label="Select Sub-Category"
-                  placeholder="Select Sub-Category"
-                  value={subvalue}
-                  onChange={(val) => setSubValue(val)}
-                  options={masterSubCategories.map(s => ({ value: s.sub_category_name, label: s.sub_category_name }))}
-                />
-              ) : (
-                <InputBox
-                  label="Sub-Category Name"
-                  placeholder="Enter Sub-Category Name"
-                  value={subvalue}
-                  onChange={(e) => setSubValue(e.target.value)}
-                  size="small"
-                  fullWidth
-                />
-              )}
-              <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "24px" }}>
-                <button className="add-button-dialog" onClick={handleSubClose} type="button">CANCEL</button>
-                <button className="add-button-dialog" type="submit">ADD</button>
-              </div>
-            </DialogContent>
-          </form>
-        </Dialog>
-      </div>
-
-      {/* brand dialog */}
-      <div>
-        <Dialog
-          fullWidth
-          maxWidth="xs"
-          open={brandopen}
-          onClose={handleBrandClose}
-          PaperProps={{
-            style: {
-              padding: "16px 24px",
-              backgroundColor: "var(--background-1)",
-              borderRadius: "12px",
-            },
-          }}
-        >
-          <form onSubmit={handleBrandSubmit} style={{ width: "100%" }}>
-            <DialogTitle style={{ textAlign: "center", color: "var(--text)", padding: "10px 0" }}>
-              <h2 style={{ margin: 0 }}>Add Brand</h2>
-            </DialogTitle>
-            <DialogContent style={{ padding: "8px 0" }}>
-              {renderModalTabs(brandTab, setBrandTab, setBrandValue)}
-              {brandTab === "existing" ? (
-                <CustomEditSelect
-                  label="Select Brand"
-                  placeholder="Select Brand"
-                  value={brandvalue}
-                  onChange={(val) => setBrandValue(val)}
-                  options={masterBrands.map(b => ({ value: b.brand_name, label: b.brand_name }))}
-                />
-              ) : (
-                <InputBox
-                  label="Brand Name"
-                  placeholder="Enter Brand Name"
-                  value={brandvalue}
-                  onChange={(e) => setBrandValue(e.target.value)}
-                  size="small"
-                  fullWidth
-                />
-              )}
-              <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "24px" }}>
-                <button className="add-button-dialog" onClick={handleBrandClose} type="button">CANCEL</button>
-                <button className="add-button-dialog" type="submit">ADD</button>
-              </div>
-            </DialogContent>
-          </form>
-        </Dialog>
-      </div>
-
-      {/* model dialog */}
-      <div>
-        <Dialog
-          fullWidth
-          maxWidth="xs"
-          open={modelopen}
-          onClose={handleModelClose}
-          PaperProps={{
-            style: {
-              padding: "16px 24px",
-              backgroundColor: "var(--background-1)",
-              borderRadius: "12px",
-            },
-          }}
-        >
-          <form onSubmit={handleModelSubmit} style={{ width: "100%" }}>
-            <DialogTitle style={{ textAlign: "center", color: "var(--text)", padding: "10px 0" }}>
-              <h2 style={{ margin: 0 }}>Add Model</h2>
-            </DialogTitle>
-            <DialogContent style={{ padding: "8px 0" }}>
-              {renderModalTabs(modelTab, setModelTab, setModelValue)}
-              {modelTab === "existing" ? (
-                <CustomEditSelect
-                  label="Select Model"
-                  placeholder="Select Model"
-                  value={modelvalue}
-                  onChange={(val) => setModelValue(val)}
-                  options={masterModels.map(m => ({ value: m.model_name, label: m.model_name }))}
-                />
-              ) : (
-                <InputBox
-                  label="Model Name"
-                  placeholder="Enter Model Name"
-                  value={modelvalue}
-                  onChange={(e) => setModelValue(e.target.value)}
-                  size="small"
-                  fullWidth
-                />
-              )}
-              <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "24px" }}>
-                <button className="add-button-dialog" onClick={handleModelClose} type="button">CANCEL</button>
-                <button className="add-button-dialog" type="submit">ADD</button>
-              </div>
-            </DialogContent>
-          </form>
-        </Dialog>
-      </div>
-
-      {/* color dialog */}
-      <div>
-        <Dialog
-          fullWidth
-          maxWidth="xs"
-          open={coloropen}
-          onClose={handleColorClose}
-          PaperProps={{
-            style: {
-              padding: "16px 24px",
-              backgroundColor: "var(--background-1)",
-              borderRadius: "12px",
-            },
-          }}
-        >
-          <form onSubmit={handleColorSubmit} style={{ width: "100%" }}>
-            <DialogTitle style={{ textAlign: "center", color: "var(--text)", padding: "10px 0" }}>
-              <h2 style={{ margin: 0 }}>Add Color</h2>
-            </DialogTitle>
-            <DialogContent style={{ padding: "8px 0" }}>
-              {renderModalTabs(colorTab, setColorTab, setColorValue)}
-              {colorTab === "existing" ? (
-                <CustomEditSelect
-                  label="Select Color"
-                  placeholder="Select Color"
-                  value={colorvalue}
-                  onChange={(val) => setColorValue(val)}
-                  options={masterColors.map(c => ({ value: c.color_name, label: c.color_name }))}
-                />
-              ) : (
-                <InputBox
-                  label="Color Name"
-                  placeholder="Enter Color Name"
-                  value={colorvalue}
-                  onChange={(e) => setColorValue(e.target.value)}
-                  size="small"
-                  fullWidth
-                />
-              )}
-              <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "24px" }}>
-                <button className="add-button-dialog" onClick={handleColorClose} type="button">CANCEL</button>
-                <button className="add-button-dialog" type="submit">ADD</button>
-              </div>
-            </DialogContent>
-          </form>
-        </Dialog>
-      </div>
-
-      {/* size dialog */}
-      <div>
-        <Dialog
-          fullWidth
-          maxWidth="xs"
-          open={sizeopen}
-          onClose={handleSizeClose}
-          PaperProps={{
-            style: {
-              padding: "16px 24px",
-              backgroundColor: "var(--background-1)",
-              borderRadius: "12px",
-            },
-          }}
-        >
-          <form onSubmit={handleSizeSubmit} style={{ width: "100%" }}>
-            <DialogTitle style={{ textAlign: "center", color: "var(--text)", padding: "10px 0" }}>
-              <h2 style={{ margin: 0 }}>Add Size</h2>
-            </DialogTitle>
-            <DialogContent style={{ padding: "8px 0" }}>
-              {renderModalTabs(sizeTab, setSizeTab, setSizeValue)}
-              {sizeTab === "existing" ? (
-                <CustomEditSelect
-                  label="Select Size"
-                  placeholder="Select Size"
-                  value={sizevalue}
-                  onChange={(val) => setSizeValue(val)}
-                  options={masterSizes.map(s => ({ value: s.size_name, label: s.size_name }))}
-                />
-              ) : (
-                <InputBox
-                  label="Size Name"
-                  placeholder="Enter Size Name"
-                  value={sizevalue}
-                  onChange={(e) => setSizeValue(e.target.value)}
-                  size="small"
-                  fullWidth
-                />
-              )}
-              <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "24px" }}>
-                <button className="add-button-dialog" onClick={handleSizeClose} type="button">CANCEL</button>
-                <button className="add-button-dialog" type="submit">ADD</button>
-              </div>
-            </DialogContent>
-          </form>
-        </Dialog>
-      </div>
-
-      {/* occasion dialog */}
-      <div>
-        <Dialog
-          fullWidth
-          maxWidth="xs"
-          open={occasionopen}
-          onClose={handleOccasionClose}
-          PaperProps={{
-            style: {
-              padding: "16px 24px",
-              backgroundColor: "var(--background-1)",
-              borderRadius: "12px",
-            },
-          }}
-        >
-          <form onSubmit={handleOccasionSubmit} style={{ width: "100%" }}>
-            <DialogTitle style={{ textAlign: "center", color: "var(--text)", padding: "10px 0" }}>
-              <h2 style={{ margin: 0 }}>Add Occasion</h2>
-            </DialogTitle>
-            <DialogContent style={{ padding: "8px 0" }}>
-              {renderModalTabs(occasionTab, setOccasionTab, setOccasionValue)}
-              {occasionTab === "existing" ? (
-                <CustomEditSelect
-                  label="Select Occasion"
-                  placeholder="Select Occasion"
-                  value={occasionvalue}
-                  onChange={(val) => setOccasionValue(val)}
-                  options={masterOccasions.map(o => ({ value: o.occasion_name, label: o.occasion_name }))}
-                />
-              ) : (
-                <InputBox
-                  label="Occasion Name"
-                  placeholder="Enter Occasion Name"
-                  value={occasionvalue}
-                  onChange={(e) => setOccasionValue(e.target.value)}
-                  size="small"
-                  fullWidth
-                />
-              )}
-              <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "24px" }}>
-                <button className="add-button-dialog" onClick={handleOccasionClose} type="button">CANCEL</button>
-                <button className="add-button-dialog" type="submit">ADD</button>
-              </div>
-            </DialogContent>
-          </form>
-        </Dialog>
-      </div>
-
-      {/* type dialog */}
-      <div>
-        <Dialog
-          fullWidth
-          maxWidth="xs"
-          open={typeopen}
-          onClose={handleTypeClose}
-          PaperProps={{
-            style: {
-              padding: "16px 24px",
-              backgroundColor: "var(--background-1)",
-              borderRadius: "12px",
-            },
-          }}
-        >
-          <form onSubmit={handleTypeSubmit} style={{ width: "100%" }}>
-            <DialogTitle style={{ textAlign: "center", color: "var(--text)", padding: "10px 0" }}>
-              <h2 style={{ margin: 0 }}>Add Type</h2>
-            </DialogTitle>
-            <DialogContent style={{ padding: "8px 0" }}>
-              {renderModalTabs(typeTab, setTypeTab, setTypeValue)}
-              {typeTab === "existing" ? (
-                <CustomEditSelect
-                  label="Select Type"
-                  placeholder="Select Type"
-                  value={typevalue}
-                  onChange={(val) => setTypeValue(val)}
-                  options={masterTypes.map(t => ({ value: t.type_name, label: t.type_name }))}
-                />
-              ) : (
-                <InputBox
-                  label="Type Name"
-                  placeholder="Enter Type Name"
-                  value={typevalue}
-                  onChange={(e) => setTypeValue(e.target.value)}
-                  size="small"
-                  fullWidth
-                />
-              )}
-              <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "24px" }}>
-                <button className="add-button-dialog" onClick={handleTypeClose} type="button">CANCEL</button>
-                <button className="add-button-dialog" type="submit">ADD</button>
-              </div>
-            </DialogContent>
-          </form>
-        </Dialog>
-      </div>
-
-      {/* Occasion Edit Modal */}
-      <Modal open={editModalOccasionOpen} onClose={handleEditModalOccasionClose}>
-        <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: 400, backgroundColor: "var(--background-1)", border: "2px solid #000", boxShadow: 24, padding: "20px", borderRadius: "10px" }}>
-          <h2 style={{ textAlign: "center", color: "var(--text)", marginBottom: "20px" }}>Edit Occasion</h2>
-          <InputBox label="Edit Occasion Name" value={editOccasionName} onChange={(e) => setEditedOccasionName(e.target.value)} size="small" fullWidth />
-          <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "20px" }}>
-            <button className="add-button-dialog" onClick={handleUpdateOccasionCategory}>UPDATE</button>
-            <button className="add-button-dialog" onClick={handleEditModalOccasionClose} style={{ marginLeft: "10px" }} type="button">CANCEL</button>
-          </div>
-        </div>
-      </Modal>
-
-      {/* Type Edit Modal */}
-      <Modal open={editModalTypeOpen} onClose={handleEditModalTypeClose}>
-        <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: 400, backgroundColor: "var(--background-1)", border: "2px solid #000", boxShadow: 24, padding: "20px", borderRadius: "10px" }}>
-          <h2 style={{ textAlign: "center", color: "var(--text)", marginBottom: "20px" }}>Edit Type</h2>
-          <InputBox label="Edit Type Name" value={editTypeName} onChange={(e) => setEditedTypeName(e.target.value)} size="small" fullWidth />
-          <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "20px" }}>
-            <button className="add-button-dialog" onClick={handleUpdateTypeCategory}>UPDATE</button>
-            <button className="add-button-dialog" onClick={handleEditModalTypeClose} style={{ marginLeft: "10px" }} type="button">CANCEL</button>
-          </div>
-        </div>
-      </Modal>
+    <div
+      className={`as-select-box ${filled ? "filled" : "placeholder"} ${disabled ? "disabled" : ""}`}
+      onClick={!disabled ? onClick : undefined}
+      style={disabled ? { opacity: 0.45, cursor: "not-allowed" } : {}}
+    >
+      <span className="as-select-value">{value || placeholder}</span>
+      <span className="as-select-icons">
+        {filled ? (
+          <CheckCircleOutlineIcon className="check-icon" />
+        ) : (
+          <KeyboardArrowDownIcon />
+        )}
+      </span>
     </div>
   );
 }
 
-export default AddStocks;
+// ─────────────────────────────────────────────────────────
+// Picker Dialog — generic list picker
+// ─────────────────────────────────────────────────────────
+function PickerDialog({
+  open,
+  onClose,
+  title,
+  items,
+  selectedId,
+  onSelect,
+  tab,
+  setTab,
+  newForm,
+  onEdit,
+  onDelete,
+}) {
+  const [search, setSearch] = useState("");
+
+  const filtered = items.filter((i) =>
+    (i.name || i.item_name || i.sub_category_name || i.brand_name || i.size_name || i.model_name || i.occasion_name || i.type_name || "")
+      .toLowerCase()
+      .includes(search.toLowerCase())
+  );
+
+  const getName = (item) =>
+    item.name || item.item_name || item.sub_category_name || item.brand_name ||
+    item.size_name || item.model_name || item.occasion_name || item.type_name || "";
+
+  useEffect(() => {
+    if (open) setSearch("");
+  }, [open]);
+
+  return (
+    <Dialog
+      open={open}
+      onClose={onClose}
+      fullWidth
+      maxWidth="sm"
+      PaperProps={{
+        style: {
+          background: "var(--surface)",
+          color: "var(--text)",
+          borderRadius: 12,
+          border: "1px solid var(--border)",
+        },
+      }}
+    >
+      {/* Header */}
+      <div className="as-dialog-title" style={{
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        padding: "14px 20px", borderBottom: "1px solid var(--border)",
+        fontSize: 15, fontWeight: 700
+      }}>
+        <span>{title}</span>
+        <button onClick={onClose} className="as-list-item-btn" style={{ width: 30, height: 30 }}>
+          <CloseIcon style={{ fontSize: 18 }} />
+        </button>
+      </div>
+
+      <DialogContent style={{ background: "var(--surface)", color: "var(--text)", padding: "16px 20px" }}>
+        {/* Tabs */}
+        <div className="as-tab-bar">
+          <button className={`as-tab ${tab === "existing" ? "active" : ""}`} onClick={() => setTab("existing")}>
+            Select Existing
+          </button>
+          <button className={`as-tab ${tab === "new" ? "active" : ""}`} onClick={() => setTab("new")}>
+            Add New
+          </button>
+        </div>
+
+        {tab === "existing" ? (
+          <>
+            {/* Search */}
+            <div className="as-search-box">
+              <SearchIcon />
+              <input
+                className="as-search-input"
+                placeholder={`Search ${title.toLowerCase()}...`}
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+            {/* List */}
+            <div className="as-list-grid">
+              {filtered.length === 0 ? (
+                <div className="as-loading">No items found</div>
+              ) : (
+                filtered.map((item) => (
+                  <div
+                    key={item.id}
+                    className={`as-list-item ${selectedId === item.id ? "selected" : ""}`}
+                    onClick={() => { onSelect(item); onClose(); }}
+                  >
+                    <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {getName(item)}
+                    </span>
+                    {(onEdit || onDelete) && (
+                      <span className="as-list-item-actions" onClick={(e) => e.stopPropagation()}>
+                        {onEdit && (
+                          <button className="as-list-item-btn" onClick={() => { onEdit(item); onClose(); }}>
+                            <EditOutlinedIcon />
+                          </button>
+                        )}
+                        {onDelete && (
+                          <button className="as-list-item-btn danger" onClick={() => onDelete(item.id, getName(item))}>
+                            <DeleteOutlineIcon />
+                          </button>
+                        )}
+                      </span>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+          </>
+        ) : (
+          <div>{newForm}</div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+// Edit dialog
+// ─────────────────────────────────────────────────────────
+function EditDialog({ open, onClose, title, value, onChange, onSave }) {
+  return (
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="xs"
+      PaperProps={{ style: { background: "var(--surface)", color: "var(--text)", borderRadius: 12, border: "1px solid var(--border)" } }}>
+      <div style={{ padding: "14px 20px", borderBottom: "1px solid var(--border)", fontWeight: 700, fontSize: 15 }}>Edit {title}</div>
+      <DialogContent style={{ background: "var(--surface)", padding: "16px 20px" }}>
+        <div className="as-new-form">
+          <input className="as-new-input" value={value} onChange={onChange} placeholder={`Enter ${title} name`} />
+          <div className="as-dialog-actions">
+            <button className="as-btn-secondary" onClick={onClose}>Cancel</button>
+            <button className="as-btn-primary" onClick={onSave}>Save</button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+// Main Component
+// ─────────────────────────────────────────────────────────
+export default function AddStocks() {
+  const notify = {
+    success: (m) => toast.success(m, { position: "bottom-left" }),
+    error: (m) => toast.error(m, { position: "bottom-left" }),
+  };
+
+  // ── Bill number
+  const [bill, setBill] = useState("");
+
+  // ── Selected product hierarchy
+  const [sel, setSel] = useState({
+    category: null,
+    itemName: null,
+    subCategory: null,
+    brand: null,
+    model: null,
+    color: null,
+    occasion: null,
+    type: null,
+  });
+
+  // ── Data lists loaded from API
+  const [lists, setLists] = useState({
+    categories: [],
+    itemNames: [],
+    subCategories: [],
+    brands: [],
+    models: [],
+    colors: [],
+    sizes: [],
+    occasions: [],
+    types: [],
+  });
+
+  // ── Master data (pre-seeded dropdowns)
+  const [master, setMaster] = useState({
+    categories: [], itemNames: [], subCategories: [], brands: [],
+    models: [], colors: [], sizes: [], occasions: [], types: [],
+  });
+
+  // ── Size rows: array of { id, size_id, size_name, quantity }
+  const [sizeRows, setSizeRows] = useState([{ id: Date.now(), size_id: "", size_name: "", quantity: "" }]);
+
+  // ── Pricing
+  const [pricing, setPricing] = useState({ purchase: "", selling: "", mrp: "" });
+
+  // ── Dialog open states
+  const [dialogs, setDialogs] = useState({
+    category: false, itemName: false, subCategory: false, brand: false,
+    model: false, color: false, occasion: false, type: false,
+  });
+
+  // ── Dialog tabs
+  const [tabs, setTabs] = useState({
+    category: "existing", itemName: "existing", subCategory: "existing", brand: "existing",
+    model: "existing", color: "existing", occasion: "existing", type: "existing",
+  });
+
+  // ── New item values
+  const [newVals, setNewVals] = useState({
+    category: "", categoryImg: null,
+    itemName: "", itemImg: null,
+    subCategory: "", subImg: null,
+    brand: "", brandImg: null,
+    model: "", color: "", size: "", occasion: "", type: "",
+  });
+
+  // ── Edit states
+  const [edit, setEdit] = useState({ open: false, type: "", id: null, value: "" });
+
+  // ── Misc
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [recentList, setRecentList] = useState([]);
+
+  // ─────────────────────────────────────────────────────
+  // Fetch helpers
+  // ─────────────────────────────────────────────────────
+  const fetchList = useCallback(async (url, key) => {
+    try {
+      const res = await requestApi("GET", url, {});
+      if (res.success) setLists((prev) => ({ ...prev, [key]: res.data }));
+    } catch (_) {}
+  }, []);
+
+  const fetchMaster = useCallback(async (url, key) => {
+    try {
+      const res = await requestApi("GET", url, {});
+      if (res.success) setMaster((prev) => ({ ...prev, [key]: res.data }));
+    } catch (_) {}
+  }, []);
+
+  // Initial loads
+  useEffect(() => {
+    fetchList("/api/structure/category", "categories");
+    fetchMaster("/api/master/category", "categories");
+    fetchList("/api/structure/occasion", "occasions");
+    fetchList("/api/structure/type", "types");
+  }, [fetchList, fetchMaster]);
+
+  // Cascade fetch on selection changes
+  useEffect(() => {
+    if (sel.category) {
+      fetchList(`/api/structure/item-name?category=${sel.category.id}`, "itemNames");
+    }
+  }, [sel.category, fetchList]);
+
+  useEffect(() => {
+    if (sel.itemName) {
+      fetchList(`/api/structure/sub-category?item_name=${sel.itemName.id}`, "subCategories");
+    }
+  }, [sel.itemName, fetchList]);
+
+  useEffect(() => {
+    if (sel.subCategory) {
+      fetchList(`/api/structure/brand?sub_category=${sel.subCategory.id}`, "brands");
+    }
+  }, [sel.subCategory, fetchList]);
+
+  useEffect(() => {
+    if (sel.brand) {
+      fetchList(`/api/structure/model?brand=${sel.brand.id}`, "models");
+    }
+  }, [sel.brand, fetchList]);
+
+  useEffect(() => {
+    if (sel.model) {
+      fetchList(`/api/structure/color?model=${sel.model.id}`, "colors");
+    }
+  }, [sel.model, fetchList]);
+
+  useEffect(() => {
+    if (sel.color) {
+      fetchList(`/api/structure/size?color=${sel.color.id}`, "sizes");
+      // Reset size rows when color changes
+      setSizeRows([{ id: Date.now(), size_id: "", size_name: "", quantity: "" }]);
+    }
+  }, [sel.color, fetchList]);
+
+  useEffect(() => {
+    if (sel.category) {
+      const catId = sel.category.id;
+      fetchMaster(`/api/master/item-name?category_id=${catId}`, "itemNames");
+      fetchMaster(`/api/master/sub-category?category_id=${catId}`, "subCategories");
+      fetchMaster(`/api/master/brand?category_id=${catId}`, "brands");
+      fetchMaster(`/api/master/model?category_id=${catId}`, "models");
+      fetchMaster(`/api/master/color?category_id=${catId}`, "colors");
+      fetchMaster(`/api/master/size?category_id=${catId}`, "sizes");
+      fetchMaster(`/api/master/occasion?category_id=${catId}`, "occasions");
+      fetchMaster(`/api/master/type?category_id=${catId}`, "types");
+    }
+  }, [sel.category, fetchMaster]);
+
+  // ─────────────────────────────────────────────────────
+  // Selection handler — clears downstream when parent changes
+  // ─────────────────────────────────────────────────────
+  const handleSelect = (field, value) => {
+    const clearMap = {
+      category: ["itemName", "subCategory", "brand", "model", "color", "occasion", "type"],
+      itemName: ["subCategory", "brand", "model", "color", "occasion", "type"],
+      subCategory: ["brand", "model", "color", "occasion", "type"],
+      brand: ["model", "color", "occasion", "type"],
+      model: ["color", "occasion", "type"],
+      color: ["occasion", "type"],
+      occasion: ["type"],
+      type: [],
+    };
+    const toClear = clearMap[field] || [];
+    setSel((prev) => {
+      const next = { ...prev, [field]: value };
+      toClear.forEach((k) => { next[k] = null; });
+      return next;
+    });
+    setDialogs((prev) => ({ ...prev, [field]: false }));
+    setTabs((prev) => ({ ...prev, [field]: "existing" }));
+  };
+
+  const openDialog = (field) => {
+    setDialogs((prev) => ({ ...prev, [field]: true }));
+    setTabs((prev) => ({ ...prev, [field]: "existing" }));
+  };
+  const closeDialog = (field) => {
+    setDialogs((prev) => ({ ...prev, [field]: false }));
+  };
+
+  // ─────────────────────────────────────────────────────
+  // Size row handlers
+  // ─────────────────────────────────────────────────────
+  const addSizeRow = () => {
+    setSizeRows((prev) => [...prev, { id: Date.now(), size_id: "", size_name: "", quantity: "" }]);
+  };
+
+  const removeSizeRow = (rowId) => {
+    setSizeRows((prev) => prev.filter((r) => r.id !== rowId));
+  };
+
+  const updateSizeRow = (rowId, field, value) => {
+    setSizeRows((prev) =>
+      prev.map((r) => {
+        if (r.id !== rowId) return r;
+        if (field === "size_id") {
+          const found = lists.sizes.find((s) => s.id === Number(value));
+          return { ...r, size_id: value, size_name: found ? found.name : "" };
+        }
+        return { ...r, [field]: value };
+      })
+    );
+  };
+
+  // ─────────────────────────────────────────────────────
+  // Pricing handlers
+  // ─────────────────────────────────────────────────────
+  const handleSellingChange = (v) => {
+    setPricing((prev) => ({ ...prev, selling: v, mrp: v }));
+  };
+
+  // ─────────────────────────────────────────────────────
+  // Live summary calculations
+  // ─────────────────────────────────────────────────────
+  const totalQty = sizeRows.reduce((s, r) => s + (Number(r.quantity) || 0), 0);
+  const totalValue = totalQty * (Number(pricing.mrp) || 0);
+
+  // ─────────────────────────────────────────────────────
+  // Reset
+  // ─────────────────────────────────────────────────────
+  const handleReset = () => {
+    setSel({ category: null, itemName: null, subCategory: null, brand: null, model: null, color: null, occasion: null, type: null });
+    setSizeRows([{ id: Date.now(), size_id: "", size_name: "", quantity: "" }]);
+    setPricing({ purchase: "", selling: "", mrp: "" });
+    setBill("");
+  };
+
+  // ─────────────────────────────────────────────────────
+  // Submit
+  // ─────────────────────────────────────────────────────
+  const handleSubmit = async () => {
+    if (!bill.toString().trim()) return notify.error("Please enter S.No / Bill number.");
+    if (!sel.category) return notify.error("Please select a Category.");
+    if (!sel.itemName) return notify.error("Please select an Item Name.");
+    if (!sel.subCategory) return notify.error("Please select a Sub-Category.");
+    if (!sel.brand) return notify.error("Please select a Brand.");
+    if (!sel.model) return notify.error("Please select a Model.");
+    if (!sel.color) return notify.error("Please select a Colour.");
+
+    const validRows = sizeRows.filter((r) => r.size_id && Number(r.quantity) > 0);
+    if (validRows.length === 0) return notify.error("Please add at least one size with quantity.");
+
+    if (!pricing.purchase || Number(pricing.purchase) <= 0) return notify.error("Please enter a valid Purchase Price.");
+    if (!pricing.selling || Number(pricing.selling) <= 0) return notify.error("Please enter a valid Selling Price.");
+    if (!pricing.mrp || Number(pricing.mrp) <= 0) return notify.error("Please enter a valid MRP.");
+
+    const productName = [sel.category?.name, sel.itemName?.name, sel.subCategory?.name, sel.brand?.name]
+      .filter(Boolean).join("-");
+
+    const bodyData = {
+      bill_number: bill,
+      category: sel.category?.id,
+      item_name: sel.itemName?.id,
+      sub_category: sel.subCategory?.id,
+      brand: sel.brand?.id,
+      model: sel.model?.id,
+      color: sel.color?.id,
+      size: validRows.map((r) => Number(r.size_id)),
+      quantity: validRows.map((r) => Number(r.quantity)),
+      occasion: sel.occasion?.id || null,
+      type: sel.type?.id || null,
+      name: productName,
+      purchasing_price: pricing.purchase,
+      selling_price: pricing.selling,
+      mrp: pricing.mrp,
+    };
+
+    setIsSubmitting(true);
+    try {
+      const res = await requestApi("POST", "/api/stock/stock", bodyData, {});
+      if (res.success) {
+        notify.success("Stock added successfully!");
+        const sizesSummary = validRows.map((r) => r.size_name || r.size_id).join(", ");
+        setRecentList((prev) => [
+
+          {
+            id: Date.now(),
+            name: productName,
+            sub: `${sel.color?.name} · Sizes: ${sizesSummary} · ${totalQty} pcs · Bill ${bill}`,
+            price: `₹${totalValue.toLocaleString()}`,
+          },
+          ...prev.slice(0, 9),
+        ]);
+        // Reset pricing + sizes but keep product selection for next entry
+        setSizeRows([{ id: Date.now(), size_id: "", size_name: "", quantity: "" }]);
+        setPricing({ purchase: "", selling: "", mrp: "" });
+      } else {
+        notify.error((res.error && res.error.response && res.error.response.data && res.error.response.data.message) || "Failed to add stock.");
+      }
+    } catch (_) {
+      notify.error("Failed to add stock.");
+    }
+    setIsSubmitting(false);
+  };
+
+  // ─────────────────────────────────────────────────────
+  // Add NEW item helpers (via structure API)
+  // ─────────────────────────────────────────────────────
+  const addNewItem = async (endpoint, formData, successMsg, refreshFn) => {
+    try {
+      const res = await fetch(`${apiHost}${endpoint}`, { method: "POST", body: formData });
+      if (res.ok) { notify.success(successMsg); refreshFn(); }
+      else notify.error("Failed to add.");
+    } catch (_) { notify.error("Failed to add."); }
+  };
+
+  const submitNewCategory = async () => {
+    if (!newVals.category) return notify.error("Name is required.");
+    const fd = new FormData();
+    fd.append("name", newVals.category);
+    if (newVals.categoryImg) fd.append("image", newVals.categoryImg);
+    await addNewItem("/api/structure/category", fd, "Category added.", () => {
+      fetchList("/api/structure/category", "categories");
+      setNewVals((p) => ({ ...p, category: "", categoryImg: null }));
+      closeDialog("category");
+    });
+  };
+
+  const submitNewItemName = async () => {
+    if (!newVals.itemName || !sel.category) return notify.error("Select category and enter name.");
+    const fd = new FormData();
+    fd.append("category", sel.category.id);
+    fd.append("name", newVals.itemName);
+    if (newVals.itemImg) fd.append("image", newVals.itemImg);
+    await addNewItem("/api/structure/item-name", fd, "Item name added.", () => {
+      fetchList(`/api/structure/item-name?category=${sel.category.id}`, "itemNames");
+      setNewVals((p) => ({ ...p, itemName: "", itemImg: null }));
+      closeDialog("itemName");
+    });
+  };
+
+  const submitNewSubCategory = async () => {
+    if (!newVals.subCategory || !sel.itemName) return notify.error("Select item name and enter sub-category.");
+    const fd = new FormData();
+    fd.append("item_name", sel.itemName.id);
+    fd.append("name", newVals.subCategory);
+    if (newVals.subImg) fd.append("image", newVals.subImg);
+    await addNewItem("/api/structure/sub-category", fd, "Sub-category added.", () => {
+      fetchList(`/api/structure/sub-category?item_name=${sel.itemName.id}`, "subCategories");
+      setNewVals((p) => ({ ...p, subCategory: "", subImg: null }));
+      closeDialog("subCategory");
+    });
+  };
+
+  const submitNewBrand = async () => {
+    if (!newVals.brand || !sel.subCategory) return notify.error("Select sub-category and enter brand.");
+    const fd = new FormData();
+    fd.append("sub_category", sel.subCategory.id);
+    fd.append("name", newVals.brand);
+    if (newVals.brandImg) fd.append("image", newVals.brandImg);
+    await addNewItem("/api/structure/brand", fd, "Brand added.", () => {
+      fetchList(`/api/structure/brand?sub_category=${sel.subCategory.id}`, "brands");
+      setNewVals((p) => ({ ...p, brand: "", brandImg: null }));
+      closeDialog("brand");
+    });
+  };
+
+  const submitNewModel = async () => {
+    if (!newVals.model || !sel.brand) return notify.error("Select brand and enter model.");
+    const fd = new FormData();
+    fd.append("brand", sel.brand.id); fd.append("name", newVals.model);
+    await addNewItem("/api/structure/model", fd, "Model added.", () => {
+      fetchList(`/api/structure/model?brand=${sel.brand.id}`, "models");
+      setNewVals((p) => ({ ...p, model: "" }));
+      closeDialog("model");
+    });
+  };
+
+  const submitNewColor = async () => {
+    if (!newVals.color || !sel.model) return notify.error("Select model and enter colour.");
+    const fd = new FormData();
+    fd.append("model", sel.model.id); fd.append("name", newVals.color);
+    await addNewItem("/api/structure/color", fd, "Colour added.", () => {
+      fetchList(`/api/structure/color?model=${sel.model.id}`, "colors");
+      setNewVals((p) => ({ ...p, color: "" }));
+      closeDialog("color");
+    });
+  };
+
+  const submitNewOccasion = async () => {
+    if (!newVals.occasion) return notify.error("Enter occasion name.");
+    const fd = new FormData();
+    fd.append("name", newVals.occasion);
+    fd.append("size", "0");
+    await addNewItem("/api/structure/occasion", fd, "Occasion added.", () => {
+      fetchList("/api/structure/occasion", "occasions");
+      setNewVals((p) => ({ ...p, occasion: "" }));
+      closeDialog("occasion");
+    });
+  };
+
+  const submitNewType = async () => {
+    if (!newVals.type) return notify.error("Enter type name.");
+    const fd = new FormData();
+    fd.append("name", newVals.type);
+    fd.append("occasion", "0");
+    await addNewItem("/api/structure/type", fd, "Type added.", () => {
+      fetchList("/api/structure/type", "types");
+      setNewVals((p) => ({ ...p, type: "" }));
+      closeDialog("type");
+    });
+  };
+
+  // ─────────────────────────────────────────────────────
+  // Delete helpers
+  // ─────────────────────────────────────────────────────
+  const handleDelete = async (endpoint, id, name, refreshFn) => {
+    if (!window.confirm(`Delete "${name}"?`)) return;
+    try {
+      const res = await requestApi("DELETE", `${endpoint}?id=${id}`, {});
+      if (res.success) { notify.success(`"${name}" deleted.`); refreshFn(); }
+      else notify.error("Failed to delete.");
+    } catch (_) { notify.error("Failed to delete."); }
+  };
+
+  // ─────────────────────────────────────────────────────
+  // Edit helpers
+  // ─────────────────────────────────────────────────────
+  const openEdit = (type, id, value) => setEdit({ open: true, type, id, value });
+  const closeEditDialog = () => setEdit({ open: false, type: "", id: null, value: "" });
+
+  const handleSaveEdit = async () => {
+    const endpointMap = {
+      category: "/api/structure/category",
+      itemName: "/api/structure/item-name",
+      subCategory: "/api/structure/sub-category",
+      brand: "/api/structure/brand",
+      model: "/api/structure/model",
+      color: "/api/structure/color",
+      occasion: "/api/structure/occasion",
+      type: "/api/structure/type",
+    };
+    const refreshMap = {
+      category: () => fetchList("/api/structure/category", "categories"),
+      itemName: () => sel.category && fetchList(`/api/structure/item-name?category=${sel.category.id}`, "itemNames"),
+      subCategory: () => sel.itemName && fetchList(`/api/structure/sub-category?item_name=${sel.itemName.id}`, "subCategories"),
+      brand: () => sel.subCategory && fetchList(`/api/structure/brand?sub_category=${sel.subCategory.id}`, "brands"),
+      model: () => sel.brand && fetchList(`/api/structure/model?brand=${sel.brand.id}`, "models"),
+      color: () => sel.model && fetchList(`/api/structure/color?model=${sel.model.id}`, "colors"),
+      occasion: () => fetchList("/api/structure/occasion", "occasions"),
+      type: () => fetchList("/api/structure/type", "types"),
+    };
+    try {
+      const res = await requestApi("PUT", endpointMap[edit.type], { id: edit.id, name: edit.value });
+      if (res.success) {
+        notify.success("Updated successfully.");
+        if (refreshMap[edit.type]) refreshMap[edit.type]();
+      } else notify.error("Update failed.");
+    } catch (_) { notify.error("Update failed."); }
+    closeEditDialog();
+  };
+
+  // ─────────────────────────────────────────────────────
+  // New-item form builders
+  // ─────────────────────────────────────────────────────
+  const imageNewForm = (nameKey, imgKey, onSubmit) => (
+    <div className="as-new-form">
+      <input className="as-new-input" placeholder="Enter name" value={newVals[nameKey]}
+        onChange={(e) => setNewVals((p) => ({ ...p, [nameKey]: e.target.value }))} />
+      <label className="as-file-input-label">
+        <UploadFileOutlinedIcon />
+        {newVals[imgKey] ? newVals[imgKey].name : "Upload image (optional)"}
+        <input type="file" accept="image/*" className="as-file-input"
+          onChange={(e) => setNewVals((p) => ({ ...p, [imgKey]: e.target.files[0] }))} />
+      </label>
+      <div className="as-dialog-actions">
+        <button className="as-btn-primary" onClick={onSubmit}>
+          <CheckIcon style={{ fontSize: 16, marginRight: 4 }} /> Add
+        </button>
+      </div>
+    </div>
+  );
+
+  const textNewForm = (nameKey, onSubmit) => (
+    <div className="as-new-form">
+      <input className="as-new-input" placeholder="Enter name" value={newVals[nameKey]}
+        onChange={(e) => setNewVals((p) => ({ ...p, [nameKey]: e.target.value }))} />
+      <div className="as-dialog-actions">
+        <button className="as-btn-primary" onClick={onSubmit}>
+          <CheckIcon style={{ fontSize: 16, marginRight: 4 }} /> Add
+        </button>
+      </div>
+    </div>
+  );
+
+  // ─────────────────────────────────────────────────────
+  // Render
+  // ─────────────────────────────────────────────────────
+  return (
+    <div className="addstock-page">
+      <Navbar />
+      <div className="addstock-content">
+        <VerticalNavbar />
+
+        <div className="addstock-main">
+          {/* ── Top bar ── */}
+          <div className="addstock-topbar">
+            <div className="addstock-topbar-left">
+              <InventoryIcon style={{ color: "var(--accent)", fontSize: 22 }} />
+              <div>
+                <div className="addstock-page-title">Add Stock</div>
+                <div className="addstock-page-subtitle">Select product details and enter quantities per size</div>
+              </div>
+            </div>
+
+            {/* Bill number */}
+            <div className="addstock-bill-bar">
+              <label>S.No / Bill</label>
+              <input
+                id="bill-number-input"
+                className="addstock-bill-input"
+                type="number"
+                placeholder="1042"
+                value={bill}
+                onChange={(e) => setBill(e.target.value)}
+              />
+            </div>
+          </div>
+
+          {/* ── Two-column form ── */}
+          <div className="addstock-form-area">
+
+            {/* ════════ LEFT COLUMN ════════ */}
+            <div className="addstock-left">
+
+              {/* Product Details card */}
+              <div className="as-card">
+                <div className="as-card-title">
+                  <LocalOfferOutlinedIcon /> Product Details
+                </div>
+                <div className="as-fields-group">
+
+                  {/* Category */}
+                  <div className="as-field">
+                    <span className="as-field-label">Category</span>
+                    <SelectBox value={sel.category?.name} placeholder="Select category"
+                      onClick={() => openDialog("category")} />
+                  </div>
+
+                  {/* Item Name + Sub-Category */}
+                  <div className="as-field-row">
+                    <div className="as-field">
+                      <span className="as-field-label">Item Name</span>
+                      <SelectBox value={sel.itemName?.name} placeholder="Select item"
+                        onClick={() => openDialog("itemName")} disabled={!sel.category} />
+                    </div>
+                    <div className="as-field">
+                      <span className="as-field-label">Sub-Category</span>
+                      <SelectBox value={sel.subCategory?.name} placeholder="Select"
+                        onClick={() => openDialog("subCategory")} disabled={!sel.itemName} />
+                    </div>
+                  </div>
+
+                  {/* Brand + Model */}
+                  <div className="as-field-row">
+                    <div className="as-field">
+                      <span className="as-field-label">Brand</span>
+                      <SelectBox value={sel.brand?.name} placeholder="Select brand"
+                        onClick={() => openDialog("brand")} disabled={!sel.subCategory} />
+                    </div>
+                    <div className="as-field">
+                      <span className="as-field-label">Model</span>
+                      <SelectBox value={sel.model?.name} placeholder="Select model"
+                        onClick={() => openDialog("model")} disabled={!sel.brand} />
+                    </div>
+                  </div>
+
+                  {/* Colour + Occasion */}
+                  <div className="as-field-row">
+                    <div className="as-field">
+                      <span className="as-field-label">Colour</span>
+                      <SelectBox value={sel.color?.name} placeholder="Select colour"
+                        onClick={() => openDialog("color")} disabled={!sel.model} />
+                    </div>
+                    <div className="as-field">
+                      <span className="as-field-label">Occasion <span style={{ fontSize: 10, color: "var(--text-muted)" }}>(optional)</span></span>
+                      <SelectBox value={sel.occasion?.name} placeholder="Select"
+                        onClick={() => openDialog("occasion")} disabled={!sel.category} />
+                    </div>
+                  </div>
+
+                  {/* Type */}
+                  <div className="as-field">
+                    <span className="as-field-label">Type <span style={{ fontSize: 10, color: "var(--text-muted)" }}>(optional)</span></span>
+                    <SelectBox value={sel.type?.name} placeholder="Select type (optional)"
+                      onClick={() => openDialog("type")} disabled={!sel.category} />
+                  </div>
+
+                </div>
+              </div>
+
+              {/* Pricing card */}
+              <div className="as-card">
+                <div className="as-card-title">
+                  <LocalOfferOutlinedIcon /> Pricing
+                </div>
+                <div className="as-price-grid">
+                  <div className="as-price-field">
+                    <label>Purchase ₹</label>
+                    <input id="purchase-price-input" className={`as-price-input ${pricing.purchase ? "filled" : ""}`}
+                      type="number" placeholder="0" value={pricing.purchase}
+                      onChange={(e) => setPricing((p) => ({ ...p, purchase: e.target.value }))} />
+                  </div>
+                  <div className="as-price-field">
+                    <label>Selling ₹</label>
+                    <input id="selling-price-input" className={`as-price-input ${pricing.selling ? "filled" : ""}`}
+                      type="number" placeholder="0" value={pricing.selling}
+                      onChange={(e) => handleSellingChange(e.target.value)} />
+                  </div>
+                  <div className="as-price-field">
+                    <label>MRP ₹</label>
+                    <input id="mrp-input" className={`as-price-input ${pricing.mrp ? "filled" : ""}`}
+                      type="number" placeholder="0" value={pricing.mrp}
+                      onChange={(e) => setPricing((p) => ({ ...p, mrp: e.target.value }))} />
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            {/* ════════ RIGHT COLUMN ════════ */}
+            <div className="addstock-right">
+
+              {/* Sizes & Quantities card */}
+              <div className="as-card" style={{ flex: 1 }}>
+                <div className="as-card-title">
+                  <StraightenIcon /> Sizes &amp; Quantities
+                </div>
+
+                <div className="as-size-table">
+                  <div className="as-size-table-head">
+                    <span>Size</span>
+                    <span style={{ textAlign: "center" }}>Qty</span>
+                    <span style={{ textAlign: "center" }}>Remove</span>
+                  </div>
+
+                  <div className="as-size-rows">
+                    {sizeRows.map((row) => (
+                      <div key={row.id} className="as-size-row">
+                        {/* Size selector */}
+                        <select
+                          className={`as-size-select ${row.size_id ? "has-value" : ""}`}
+                          value={row.size_id}
+                          onChange={(e) => updateSizeRow(row.id, "size_id", e.target.value)}
+                          disabled={!sel.color}
+                        >
+                          <option value="">Select size…</option>
+                          {lists.sizes.map((s) => (
+                            <option key={s.id} value={s.id}>{s.name}</option>
+                          ))}
+                        </select>
+
+                        {/* Qty input */}
+                        <input
+                          className={`as-qty-input ${Number(row.quantity) > 0 ? "has-value" : ""}`}
+                          type="number"
+                          min="0"
+                          placeholder="0"
+                          value={row.quantity}
+                          onChange={(e) => updateSizeRow(row.id, "quantity", e.target.value)}
+                        />
+
+                        {/* Remove */}
+                        <button className="as-remove-btn" onClick={() => removeSizeRow(row.id)}
+                          title="Remove row" disabled={sizeRows.length === 1}>
+                          <CloseIcon />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+
+                  <button className="as-add-size-btn" onClick={addSizeRow} disabled={!sel.color}>
+                    <AddIcon /> Add Size Row
+                  </button>
+                </div>
+              </div>
+
+              {/* Live summary card */}
+              <div className="as-card">
+                <div className="as-card-title">
+                  <ListAltIcon /> Entry Summary
+                </div>
+                <div className="as-summary-grid">
+                  <div className="as-summary-item">
+                    <div className="as-summary-label">Category</div>
+                    <div className={`as-summary-value ${!sel.category ? "empty" : ""}`}>{sel.category?.name || "—"}</div>
+                  </div>
+                  <div className="as-summary-item">
+                    <div className="as-summary-label">Brand · Model</div>
+                    <div className={`as-summary-value ${!sel.brand ? "empty" : ""}`}>
+                      {sel.brand && sel.model ? `${sel.brand.name} · ${sel.model.name}` : "—"}
+                    </div>
+                  </div>
+                  <div className="as-summary-item">
+                    <div className="as-summary-label">Item · Sub</div>
+                    <div className={`as-summary-value ${!sel.itemName ? "empty" : ""}`}>
+                      {sel.itemName && sel.subCategory ? `${sel.itemName.name} · ${sel.subCategory.name}` : "—"}
+                    </div>
+                  </div>
+                  <div className="as-summary-item">
+                    <div className="as-summary-label">Colour</div>
+                    <div className={`as-summary-value ${!sel.color ? "empty" : ""}`}>{sel.color?.name || "—"}</div>
+                  </div>
+                  <div className="as-summary-item">
+                    <div className="as-summary-label">Total Qty</div>
+                    <div className={`as-summary-value ${totalQty > 0 ? "highlight" : "empty"}`}>
+                      {totalQty > 0 ? `${totalQty} pcs` : "—"}
+                    </div>
+                  </div>
+                  <div className="as-summary-item">
+                    <div className="as-summary-label">Total Value</div>
+                    <div className={`as-summary-value ${totalValue > 0 ? "highlight" : "empty"}`}>
+                      {totalValue > 0 ? `₹${totalValue.toLocaleString()}` : "—"}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action buttons */}
+              <div className="as-submit-area">
+                <button className="as-btn-reset" onClick={handleReset}>
+                  <RefreshIcon /> Reset
+                </button>
+                <button id="add-stock-submit-btn" className="as-btn-submit" onClick={handleSubmit} disabled={isSubmitting}>
+                  <CheckIcon /> {isSubmitting ? "Adding..." : "Add to Stock"}
+                </button>
+              </div>
+
+              {/* Recent additions */}
+              <div className="as-card">
+                <div className="as-card-title">
+                  <ListAltIcon /> Recently Added (This Session)
+                </div>
+                <div className="as-recent-list">
+                  {recentList.length === 0 ? (
+                    <div className="as-recent-empty">No entries yet this session</div>
+                  ) : (
+                    recentList.map((item, idx) => (
+                      <div key={item.id} className="as-recent-item">
+                        <div className="as-recent-badge">#{idx + 1}</div>
+                        <div className="as-recent-info">
+                          <div className="as-recent-name">{item.name}</div>
+                          <div className="as-recent-sub">{item.sub}</div>
+                        </div>
+                        <div className="as-recent-price">{item.price}</div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ════════ PICKER DIALOGS ════════ */}
+
+      {/* Category */}
+      <PickerDialog open={dialogs.category} onClose={() => closeDialog("category")}
+        title="Category" items={lists.categories} selectedId={sel.category?.id}
+        onSelect={(v) => handleSelect("category", v)}
+        tab={tabs.category} setTab={(t) => setTabs((p) => ({ ...p, category: t }))}
+        newForm={imageNewForm("category", "categoryImg", submitNewCategory)}
+        onEdit={(item) => openEdit("category", item.id, item.name)}
+        onDelete={(id, name) => handleDelete("/api/structure/category", id, name,
+          () => fetchList("/api/structure/category", "categories"))} />
+
+      {/* Item Name */}
+      <PickerDialog open={dialogs.itemName} onClose={() => closeDialog("itemName")}
+        title="Item Name" items={lists.itemNames} selectedId={sel.itemName?.id}
+        onSelect={(v) => handleSelect("itemName", v)}
+        tab={tabs.itemName} setTab={(t) => setTabs((p) => ({ ...p, itemName: t }))}
+        newForm={imageNewForm("itemName", "itemImg", submitNewItemName)}
+        onEdit={(item) => openEdit("itemName", item.id, item.name)}
+        onDelete={(id, name) => handleDelete("/api/structure/item-name", id, name,
+          () => sel.category && fetchList(`/api/structure/item-name?category=${sel.category.id}`, "itemNames"))} />
+
+      {/* Sub-Category */}
+      <PickerDialog open={dialogs.subCategory} onClose={() => closeDialog("subCategory")}
+        title="Sub-Category" items={lists.subCategories} selectedId={sel.subCategory?.id}
+        onSelect={(v) => handleSelect("subCategory", v)}
+        tab={tabs.subCategory} setTab={(t) => setTabs((p) => ({ ...p, subCategory: t }))}
+        newForm={imageNewForm("subCategory", "subImg", submitNewSubCategory)}
+        onEdit={(item) => openEdit("subCategory", item.id, item.name)}
+        onDelete={(id, name) => handleDelete("/api/structure/sub-category", id, name,
+          () => sel.itemName && fetchList(`/api/structure/sub-category?item_name=${sel.itemName.id}`, "subCategories"))} />
+
+      {/* Brand */}
+      <PickerDialog open={dialogs.brand} onClose={() => closeDialog("brand")}
+        title="Brand" items={lists.brands} selectedId={sel.brand?.id}
+        onSelect={(v) => handleSelect("brand", v)}
+        tab={tabs.brand} setTab={(t) => setTabs((p) => ({ ...p, brand: t }))}
+        newForm={imageNewForm("brand", "brandImg", submitNewBrand)}
+        onEdit={(item) => openEdit("brand", item.id, item.name)}
+        onDelete={(id, name) => handleDelete("/api/structure/brand", id, name,
+          () => sel.subCategory && fetchList(`/api/structure/brand?sub_category=${sel.subCategory.id}`, "brands"))} />
+
+      {/* Model */}
+      <PickerDialog open={dialogs.model} onClose={() => closeDialog("model")}
+        title="Model" items={lists.models} selectedId={sel.model?.id}
+        onSelect={(v) => handleSelect("model", v)}
+        tab={tabs.model} setTab={(t) => setTabs((p) => ({ ...p, model: t }))}
+        newForm={textNewForm("model", submitNewModel)}
+        onEdit={(item) => openEdit("model", item.id, item.name)}
+        onDelete={(id, name) => handleDelete("/api/structure/model", id, name,
+          () => sel.brand && fetchList(`/api/structure/model?brand=${sel.brand.id}`, "models"))} />
+
+      {/* Colour */}
+      <PickerDialog open={dialogs.color} onClose={() => closeDialog("color")}
+        title="Colour" items={lists.colors} selectedId={sel.color?.id}
+        onSelect={(v) => handleSelect("color", v)}
+        tab={tabs.color} setTab={(t) => setTabs((p) => ({ ...p, color: t }))}
+        newForm={textNewForm("color", submitNewColor)}
+        onEdit={(item) => openEdit("color", item.id, item.name)}
+        onDelete={(id, name) => handleDelete("/api/structure/color", id, name,
+          () => sel.model && fetchList(`/api/structure/color?model=${sel.model.id}`, "colors"))} />
+
+      {/* Occasion */}
+      <PickerDialog open={dialogs.occasion} onClose={() => closeDialog("occasion")}
+        title="Occasion" items={lists.occasions} selectedId={sel.occasion?.id}
+        onSelect={(v) => handleSelect("occasion", v)}
+        tab={tabs.occasion} setTab={(t) => setTabs((p) => ({ ...p, occasion: t }))}
+        newForm={textNewForm("occasion", submitNewOccasion)}
+        onEdit={(item) => openEdit("occasion", item.id, item.name)}
+        onDelete={(id, name) => handleDelete("/api/structure/occasion", id, name,
+          () => fetchList("/api/structure/occasion", "occasions"))} />
+
+      {/* Type */}
+      <PickerDialog open={dialogs.type} onClose={() => closeDialog("type")}
+        title="Type" items={lists.types} selectedId={sel.type?.id}
+        onSelect={(v) => handleSelect("type", v)}
+        tab={tabs.type} setTab={(t) => setTabs((p) => ({ ...p, type: t }))}
+        newForm={textNewForm("type", submitNewType)}
+        onEdit={(item) => openEdit("type", item.id, item.name)}
+        onDelete={(id, name) => handleDelete("/api/structure/type", id, name,
+          () => fetchList("/api/structure/type", "types"))} />
+
+      {/* Edit dialog */}
+      <EditDialog open={edit.open} onClose={closeEditDialog}
+        title={edit.type} value={edit.value}
+        onChange={(e) => setEdit((p) => ({ ...p, value: e.target.value }))}
+        onSave={handleSaveEdit} />
+
+      <ToastContainer />
+    </div>
+  );
+}

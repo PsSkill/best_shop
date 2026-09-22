@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Add Stock — New UI Wireframe</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; }
+
+  /* ── LAYOUT ── */
+  .shell { display: flex; height: 100vh; overflow: hidden; }
+  .sidebar { width: 220px; background: #1e293b; padding: 20px 0; flex-shrink: 0; border-right: 1px solid #334155; }
+  .sidebar .logo { padding: 0 20px 24px; font-size: 18px; font-weight: 700; color: #38bdf8; border-bottom: 1px solid #334155; }
+  .sidebar nav a { display: block; padding: 12px 20px; color: #94a3b8; text-decoration: none; font-size: 13px; }
+  .sidebar nav a.active { background: #0f172a; color: #38bdf8; border-left: 3px solid #38bdf8; font-weight: 600; }
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .topbar { background: #1e293b; border-bottom: 1px solid #334155; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; }
+  .topbar h1 { font-size: 16px; font-weight: 600; color: #f1f5f9; }
+  .topbar .badge { background: #0ea5e9; color: #fff; font-size: 11px; padding: 3px 10px; border-radius: 20px; }
+  .content { flex: 1; overflow-y: auto; padding: 24px; display: flex; gap: 20px; }
+
+  /* ── LEFT PANEL (Selector Panel) ── */
+  .left-panel { flex: 0 0 380px; display: flex; flex-direction: column; gap: 14px; }
+
+  /* ── RIGHT PANEL (Summary + Sizes + Pricing) ── */
+  .right-panel { flex: 1; display: flex; flex-direction: column; gap: 14px; }
+
+  /* ── CARD ── */
+  .card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 16px; }
+  .card-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #64748b; margin-bottom: 12px; }
+
+  /* ── BILL NUMBER BAR ── */
+  .bill-bar { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; gap: 12px; }
+  .bill-bar label { font-size: 12px; color: #94a3b8; white-space: nowrap; }
+  .bill-bar input { flex: 1; background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 8px 12px; color: #f1f5f9; font-size: 14px; font-weight: 600; outline: none; }
+  .bill-bar input:focus { border-color: #38bdf8; }
+
+  /* ── DROPDOWN FIELD ── */
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label { font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+  .select-box { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #f1f5f9; cursor: pointer; display: flex; align-items: center; justify-content: space-between; transition: border-color 0.2s; }
+  .select-box:hover { border-color: #38bdf8; }
+  .select-box.filled { border-color: #22c55e; color: #4ade80; }
+  .select-box.filled .checkmark { color: #22c55e; font-size: 14px; }
+  .select-box .arrow { color: #64748b; font-size: 12px; }
+  .field-row { display: flex; gap: 10px; }
+  .field-row .field { flex: 1; }
+
+  /* ── SIZE + QTY TABLE ── */
+  .size-table { width: 100%; }
+  .size-table-head { display: grid; grid-template-columns: 1fr 80px 80px; gap: 8px; padding: 6px 0; font-size: 10px; text-transform: uppercase; letter-spacing: 0.8px; color: #64748b; border-bottom: 1px solid #334155; margin-bottom: 8px; }
+  .size-row { display: grid; grid-template-columns: 1fr 80px 80px; gap: 8px; align-items: center; padding: 6px 0; border-bottom: 1px solid #1e293b; }
+  .size-label { font-size: 13px; color: #e2e8f0; font-weight: 500; }
+  .qty-input { background: #0f172a; border: 1px solid #334155; border-radius: 6px; padding: 6px 8px; color: #f1f5f9; font-size: 13px; text-align: center; width: 100%; outline: none; }
+  .qty-input:focus { border-color: #38bdf8; }
+  .qty-input.has-value { border-color: #22c55e; }
+  .size-action { background: none; border: none; color: #64748b; cursor: pointer; padding: 4px; font-size: 16px; }
+  .size-action:hover { color: #ef4444; }
+  .add-size-btn { width: 100%; margin-top: 10px; background: #0f172a; border: 1px dashed #334155; border-radius: 8px; padding: 10px; color: #38bdf8; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s; }
+  .add-size-btn:hover { background: #0ea5e9; border-color: #0ea5e9; color: #fff; }
+
+  /* ── SUMMARY CARD ── */
+  .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .summary-item { background: #0f172a; border-radius: 8px; padding: 10px 12px; }
+  .summary-item .lbl { font-size: 10px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
+  .summary-item .val { font-size: 13px; color: #f1f5f9; font-weight: 600; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .summary-item .val.empty { color: #334155; }
+  .summary-item .val.green { color: #4ade80; }
+
+  /* ── PRICING ── */
+  .price-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+  .price-field { display: flex; flex-direction: column; gap: 6px; }
+  .price-field label { font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+  .price-input { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 10px 12px; color: #f1f5f9; font-size: 14px; font-weight: 600; outline: none; width: 100%; }
+  .price-input:focus { border-color: #38bdf8; }
+  .price-input.filled { border-color: #22c55e; }
+  .price-input::placeholder { color: #475569; font-weight: 400; }
+
+  /* ── RECENT LIST ── */
+  .recent-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #1e293b; }
+  .recent-item:last-child { border: none; }
+  .recent-badge { width: 32px; height: 32px; background: #0f172a; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #38bdf8; font-weight: 700; flex-shrink: 0; }
+  .recent-info { flex: 1; }
+  .recent-info .name { font-size: 12px; color: #e2e8f0; font-weight: 600; }
+  .recent-info .sub { font-size: 11px; color: #64748b; margin-top: 2px; }
+  .recent-price { font-size: 12px; color: #4ade80; font-weight: 600; }
+
+  /* ── SUBMIT ── */
+  .submit-area { display: flex; gap: 10px; margin-top: 4px; }
+  .btn-submit { flex: 1; background: linear-gradient(135deg, #0ea5e9, #0284c7); border: none; border-radius: 10px; padding: 14px; color: #fff; font-size: 15px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s; }
+  .btn-submit:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(14,165,233,0.35); }
+  .btn-reset { background: #0f172a; border: 1px solid #334155; border-radius: 10px; padding: 14px 18px; color: #94a3b8; font-size: 14px; cursor: pointer; transition: all 0.2s; }
+  .btn-reset:hover { border-color: #ef4444; color: #ef4444; }
+
+  /* ── ANNOTATION TOOLTIP ── */
+  .note { font-size: 11px; color: #94a3b8; background: #0f172a; border-left: 3px solid #38bdf8; padding: 8px 12px; border-radius: 0 6px 6px 0; margin-top: 6px; }
+
+  /* ── ANNOTATIONS (red circles) ── */
+  .ann { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; background: #ef4444; color: #fff; border-radius: 50%; font-size: 10px; font-weight: 700; margin-left: 6px; vertical-align: middle; flex-shrink: 0; }
+
+  /* ── SECTION DIVIDER ── */
+  .divider { font-size: 10px; color: #475569; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; gap: 8px; }
+  .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: #334155; }
+
+  /* ── LEGEND ── */
+  .legend { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 16px; margin-top: 20px; }
+  .legend h3 { font-size: 13px; font-weight: 700; color: #f1f5f9; margin-bottom: 12px; }
+  .legend-item { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; font-size: 12px; color: #94a3b8; line-height: 1.5; }
+  .legend-num { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; background: #ef4444; color: #fff; border-radius: 50%; font-size: 11px; font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+  .legend-green { color: #4ade80; font-weight: 600; }
+  .legend-blue { color: #38bdf8; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="logo">🏪 BestShop</div>
+    <nav>
+      <a href="#">📊 Dashboard</a>
+      <a href="#" class="active">📦 Add Stock</a>
+      <a href="#">📋 Stocks</a>
+      <a href="#">📁 Export</a>
+      <a href="#">📥 Import</a>
+    </nav>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <h1>Add Stock Entry <span class="ann">NEW</span></h1>
+      <span class="badge">Bill #1042</span>
+    </div>
+
+    <div class="content">
+
+      <!-- ══════════════════════════════════════════ -->
+      <!-- LEFT PANEL -->
+      <!-- ══════════════════════════════════════════ -->
+      <div class="left-panel">
+
+        <!-- BILL NUMBER -->
+        <div class="bill-bar">
+          <label>S.No / Bill <span class="ann">1</span></label>
+          <input type="text" value="1042" placeholder="Enter bill number" />
+        </div>
+
+        <!-- PRODUCT DETAILS CARD -->
+        <div class="card">
+          <div class="card-title">Product Details <span class="ann">2</span></div>
+          <div style="display:flex; flex-direction:column; gap:12px;">
+
+            <div class="field">
+              <label>Category</label>
+              <div class="select-box filled">
+                <span>Footwear</span>
+                <span class="checkmark">✓</span>
+              </div>
+            </div>
+
+            <div class="field-row">
+              <div class="field">
+                <label>Item Name</label>
+                <div class="select-box filled">
+                  <span>Sneakers</span>
+                  <span class="checkmark">✓</span>
+                </div>
+              </div>
+              <div class="field">
+                <label>Sub-Category</label>
+                <div class="select-box filled">
+                  <span>Sports</span>
+                  <span class="checkmark">✓</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="field-row">
+              <div class="field">
+                <label>Brand</label>
+                <div class="select-box filled">
+                  <span>Nike</span>
+                  <span class="checkmark">✓</span>
+                </div>
+              </div>
+              <div class="field">
+                <label>Model</label>
+                <div class="select-box filled">
+                  <span>Air Max 90</span>
+                  <span class="checkmark">✓</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="field-row">
+              <div class="field">
+                <label>Colour</label>
+                <div class="select-box filled">
+                  <span>Black</span>
+                  <span class="checkmark">✓</span>
+                </div>
+              </div>
+              <div class="field">
+                <label>Occasion</label>
+                <div class="select-box">
+                  <span style="color:#475569">Select...</span>
+                  <span class="arrow">▾</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="field">
+              <label>Type</label>
+              <div class="select-box">
+                <span style="color:#475569">Select (Optional)</span>
+                <span class="arrow">▾</span>
+              </div>
+            </div>
+
+          </div>
+
+          <div class="note" style="margin-top:14px;">
+            <b>Key Change:</b> All dropdowns are on ONE screen. No navigating forward/back to change fields. Just tap any dropdown to change it. <span class="ann">2</span>
+          </div>
+        </div>
+
+        <!-- PRICING CARD -->
+        <div class="card">
+          <div class="card-title">Pricing <span class="ann">3</span></div>
+          <div class="price-grid">
+            <div class="price-field">
+              <label>Purchase ₹</label>
+              <input class="price-input filled" type="number" value="850" placeholder="0" />
+            </div>
+            <div class="price-field">
+              <label>Selling ₹</label>
+              <input class="price-input filled" type="number" value="1299" placeholder="0" />
+            </div>
+            <div class="price-field">
+              <label>MRP ₹</label>
+              <input class="price-input filled" type="number" value="1299" placeholder="0" />
+            </div>
+          </div>
+          <div class="note" style="margin-top:10px;">Selling price auto-fills MRP. You can override MRP separately.</div>
+        </div>
+
+      </div>
+
+      <!-- ══════════════════════════════════════════ -->
+      <!-- RIGHT PANEL -->
+      <!-- ══════════════════════════════════════════ -->
+      <div class="right-panel">
+
+        <!-- SIZES + QUANTITY CARD -->
+        <div class="card" style="flex:1">
+          <div class="card-title">Sizes & Quantities <span class="ann">4</span></div>
+          <div class="note" style="margin-bottom:12px;">
+            <b>Key Change:</b> Select multiple sizes at once. Enter qty per size directly inline. <b>No need to go back</b> to change or add a size. <span class="ann">4</span>
+          </div>
+
+          <div class="size-table">
+            <div class="size-table-head">
+              <span>Size</span>
+              <span style="text-align:center">Qty</span>
+              <span style="text-align:center">Remove</span>
+            </div>
+
+            <div class="size-row">
+              <span class="size-label">Size 6</span>
+              <input class="qty-input has-value" type="number" value="3" />
+              <button class="size-action" style="margin:auto">✕</button>
+            </div>
+            <div class="size-row">
+              <span class="size-label">Size 7</span>
+              <input class="qty-input has-value" type="number" value="5" />
+              <button class="size-action" style="margin:auto">✕</button>
+            </div>
+            <div class="size-row">
+              <span class="size-label">Size 8</span>
+              <input class="qty-input has-value" type="number" value="4" />
+              <button class="size-action" style="margin:auto">✕</button>
+            </div>
+            <div class="size-row">
+              <span class="size-label" style="color:#475569">Size 9 &nbsp;(tap to set qty)</span>
+              <input class="qty-input" type="number" placeholder="0" />
+              <button class="size-action" style="margin:auto">✕</button>
+            </div>
+
+            <button class="add-size-btn">＋ &nbsp; Add Another Size</button>
+          </div>
+        </div>
+
+        <!-- SUMMARY CARD -->
+        <div class="card">
+          <div class="card-title">Entry Summary <span class="ann">5</span></div>
+          <div class="summary-grid">
+            <div class="summary-item">
+              <div class="lbl">Category</div>
+              <div class="val">Footwear</div>
+            </div>
+            <div class="summary-item">
+              <div class="lbl">Item</div>
+              <div class="val">Sneakers</div>
+            </div>
+            <div class="summary-item">
+              <div class="lbl">Brand / Model</div>
+              <div class="val">Nike · Air Max 90</div>
+            </div>
+            <div class="summary-item">
+              <div class="lbl">Colour</div>
+              <div class="val">Black</div>
+            </div>
+            <div class="summary-item">
+              <div class="lbl">Total Qty</div>
+              <div class="val green">12 pairs</div>
+            </div>
+            <div class="summary-item">
+              <div class="lbl">Total Value</div>
+              <div class="val green">₹ 15,588</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SUBMIT -->
+        <div class="submit-area">
+          <button class="btn-reset">↺ Reset</button>
+          <button class="btn-submit">✓ &nbsp; Add to Stock</button>
+        </div>
+
+        <!-- RECENT ADDED -->
+        <div class="card">
+          <div class="card-title">Recently Added (this session)</div>
+          <div class="recent-item">
+            <div class="recent-badge">#1</div>
+            <div class="recent-info">
+              <div class="name">Footwear · Sneakers · Nike · Air Max 90</div>
+              <div class="sub">Black · Sizes 6,7,8 · 12 pcs · Bill 1041</div>
+            </div>
+            <div class="recent-price">₹15,588</div>
+          </div>
+          <div class="recent-item">
+            <div class="recent-badge">#2</div>
+            <div class="recent-info">
+              <div class="name">Footwear · Sandals · Bata · Classic</div>
+              <div class="sub">Brown · Sizes 7,8 · 8 pcs · Bill 1041</div>
+            </div>
+            <div class="recent-price">₹4,792</div>
+          </div>
+        </div>
+
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /shell -->
+
+<!-- ══════════════════════════════════════════ -->
+<!-- LEGEND (below the wireframe) -->
+<!-- ══════════════════════════════════════════ -->
+<div style="padding: 0 24px 32px; max-width: 1100px; margin: 0 auto;">
+  <div class="legend">
+    <h3>📌 Design Notes — What Changed & Why</h3>
+
+    <div class="legend-item">
+      <span class="legend-num">1</span>
+      <span><b class="legend-blue">Bill number at the top</b> — Visible and sticky throughout. Users enter it once and it stays in view so they don't forget.</span>
+    </div>
+
+    <div class="legend-item">
+      <span class="legend-num">2</span>
+      <span><b class="legend-blue">All dropdowns on ONE card</b> — Category, Item, Sub-Category, Brand, Model, Colour, Occasion, Type are all visible at once. Tap any dropdown to change it. <b>Zero back navigation required</b>. Green checkmark = filled. Grey = not yet selected.</span>
+    </div>
+
+    <div class="legend-item">
+      <span class="legend-num">3</span>
+      <span><b class="legend-blue">Pricing on the same screen</b> — Purchase price, Selling price, MRP are right below the product fields. No separate pricing "page".</span>
+    </div>
+
+    <div class="legend-item">
+      <span class="legend-num">4</span>
+      <span><b class="legend-blue">Sizes & Quantities — inline table</b> — This is the core UX fix. Instead of selecting one size and going forward, users see <em>all sizes as rows</em>. They just type the quantity next to each size. Adding a new size = click "+ Add Another Size". Removing = click ✕. <b>No back step needed at all</b>.</span>
+    </div>
+
+    <div class="legend-item">
+      <span class="legend-num">5</span>
+      <span><b class="legend-blue">Live summary + total</b> — Shows a running summary of what they've selected including total pieces and total value, so users can verify before submitting.</span>
+    </div>
+
+    <div class="legend-item">
+      <span class="legend-num" style="background:#22c55e">✓</span>
+      <span><b class="legend-green">Guiding principle</b> — The whole form is ONE screen. The user fills everything on this screen and presses "Add to Stock". To add the same product in a different size, they just add a new size row. To change colour, they tap the Colour dropdown inline. <b>Maximum 0 back steps</b>.</span>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,19 +1,18 @@
 import React, { useState, useEffect } from "react";
 import HorizontalNavbar from "../Horizontal_Navbar/horizontal_navbar";
 import VerticalNavbar from "../Vertical_Navbar/vertical_navbar";
-import "../Stock_Dashboard/stock_dashboard.css";
-import "../add_product/add_product.css";
-import "./export.css";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import apiHost from "../../utils/api";
 import requestApi from "../../utils/axios";
 import Select from "react-select";
-import DownloadIcon from "@mui/icons-material/Download";
+import FileDownloadOutlinedIcon from "@mui/icons-material/FileDownloadOutlined";
+import FileUploadOutlinedIcon from "@mui/icons-material/FileUploadOutlined";
+import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
+import StorefrontOutlinedIcon from "@mui/icons-material/StorefrontOutlined";
+import ReceiptLongOutlinedIcon from "@mui/icons-material/ReceiptLongOutlined";
 import dayjs from "dayjs";
-import InputBox from "../InputBox/inputbox";
-import CustomDatePicker from "../InputBox/datepicker";
 import ImportData from "../import_data/import";
+import "./export.css";
 
 const ExportData = () => {
   const [bill, setBill] = useState("");
@@ -21,63 +20,55 @@ const ExportData = () => {
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [selectedDate, setSelectedDate] = useState(dayjs());
   const [isLoading, setIsLoading] = useState(false);
-  const [csvData, setCsvData] = useState(null);
 
   useEffect(() => {
-    const fetchData = async () => {
-      const { success, data } = await requestApi(
-        "GET",
-        "/api/master/shop-location"
-      );
-      if (success) {
-        const formattedOptions = data.map((item) => ({
-          label: item.name,
-          value: item.id,
-        }));
-        setLocation(formattedOptions);
-      } else {
+    const fetchLocations = async () => {
+      try {
+        const { success, data } = await requestApi(
+          "GET",
+          "/api/master/shop-location"
+        );
+        if (success && Array.isArray(data)) {
+          const options = data.map((item) => ({
+            label: item.name,
+            value: item.id,
+          }));
+          setLocation(options);
+          if (options.length > 0) {
+            setSelectedLocation(options[0]);
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching shop locations:", err);
       }
     };
 
-    fetchData();
+    fetchLocations();
   }, []);
 
-  const handleDateChange = (newValue) => {
-    setSelectedDate(newValue);
-  };
-
-  const handleChange = (selectedLocation) => {
-    setSelectedLocation(selectedLocation);
-  };
-
   const handleDownload = async () => {
-    setIsLoading(true);
+    if (!selectedLocation) {
+      toast.warning("Please select a shop location");
+      return;
+    }
 
+    setIsLoading(true);
     try {
       const queryParams = new URLSearchParams({
         date: selectedDate.format("YYYY-MM-DD"),
         shop_location: selectedLocation.value,
       });
 
-      if (bill) {
-        queryParams.append("bill_number", bill);
+      if (bill.trim()) {
+        queryParams.append("bill_number", bill.trim());
       }
 
-      const url = `${apiHost}/api/stock/export-csv?${queryParams}`;
-
-      // Log the request details before making the call
-
-      // Fetch data using requestApi
-      const { success, data, error } = await requestApi(
+      const { success, data } = await requestApi(
         "GET",
-        `/api/stock/export-csv?${queryParams}`,
-        {}
+        `/api/stock/export-csv?${queryParams}`
       );
 
-      if (success && data) {
-        setCsvData(data);
-
-        // Proceed with the download
+      if (success && Array.isArray(data) && data.length > 0) {
         const headers = Object.keys(data[0]).join(",");
         const rows = data.map((obj) => Object.values(obj).join(",")).join("\n");
         const csvContent = `${headers}\n${rows}`;
@@ -86,29 +77,25 @@ const ExportData = () => {
         const urlPath = window.URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = urlPath;
-        let fileName = `${selectedDate.format("YYYY-MM-DD")}`;
-        if (bill) {
-          fileName += `_${bill}`;
+        let fileName = `Stock_${selectedLocation.label}_${selectedDate.format("YYYY-MM-DD")}`;
+        if (bill.trim()) {
+          fileName += `_Bill_${bill.trim()}`;
         }
         fileName += ".csv";
         link.setAttribute("download", fileName);
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+        toast.success("Excel/CSV downloaded successfully!");
       } else {
-        if (error) {
-        }
+        toast.info("No stock records found for the selected shop and date.");
       }
-    } catch (error) { }
-
-    setIsLoading(false);
-  };
-
-  // Function to convert JSON to CSV
-  const convertJSONToCSV = (jsonData) => {
-    const header = Object.keys(jsonData[0]).join(",");
-    const rows = jsonData.map((row) => Object.values(row).join(","));
-    return `${header}\n${rows.join("\n")}`;
+    } catch (error) {
+      console.error("Error exporting CSV:", error);
+      toast.error("Failed to export stock file");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -117,110 +104,121 @@ const ExportData = () => {
       <div className="vandc-container">
         <VerticalNavbar />
         <ToastContainer />
-
-
         <div className="dashboard-body">
-          <div style={{
-            height: "100%",
-            width: "100%",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}>
-            <div style={{
-              display: "flex",
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "10px",
-              flexWrap: "wrap",
-              width: "900px",
-            }}>
-              <div className="import-container-card">
-                <ImportData />
-              </div>
-              <div className="export-container-card">
-                <div className="dropdown-ex">
+          <div className="io-hub">
+            <div className="io-header">
+              <h1>Import &amp; Export Data</h1>
+              <p>Download Excel backups of inventory or import sold stock spreadsheets</p>
+            </div>
+
+            <div className="io-grid">
+              {/* Card 1: Export Stock */}
+              <div className="io-card">
+                <div className="io-card-header">
+                  <div className="io-card-icon export">
+                    <FileDownloadOutlinedIcon style={{ fontSize: 28 }} />
+                  </div>
+                  <div className="io-card-title">
+                    <h3>Export Stock Spreadsheet</h3>
+                    <p>Download CSV/Excel file of incoming inventory</p>
+                  </div>
+                </div>
+
+                <div className="io-form-group">
+                  <label>
+                    <StorefrontOutlinedIcon style={{ fontSize: 16, verticalAlign: "middle", marginRight: 4 }} />
+                    Shop Location
+                  </label>
                   <Select
                     value={selectedLocation}
-                    onChange={handleChange}
+                    onChange={(val) => setSelectedLocation(val)}
                     options={location}
-                    placeholder="Select Shop"
-                    theme={(theme) => ({
-                      ...theme,
-                      borderRadius: 2,
-                      colors: {
-                        ...theme.colors,
-                        // after select dropdown option
-                        primary50: "var(--text)",
-                        // Border and Background dropdown color
-                        primary: "var(--button)",
-                        // Background hover dropdown color
-                        primary25: "var(--button-hover)",
-                        // Background color
-                        neutral0: "var(--background)",
-                        // Border before select
-                        neutral20: "#178a84",
-                        // Hover border
-                        neutral30: "#82FFE7",
-                        // No options color
-                        neutral40: "#CAFFCA",
-                        // Select color
-                        neutral50: "#F4FFFD",
-                        // Arrow icon when click select
-                        neutral60: "#fff",
-                        // Text color
-                        neutral80: "var(--text)",
-                      },
-                    })}
+                    placeholder="Select Shop..."
                     styles={{
+                      control: (provided) => ({
+                        ...provided,
+                        backgroundColor: "var(--background)",
+                        borderColor: "var(--border)",
+                        borderRadius: 8,
+                        padding: "2px",
+                      }),
+                      singleValue: (provided) => ({
+                        ...provided,
+                        color: "var(--text)",
+                        fontWeight: 600,
+                      }),
+                      menu: (provided) => ({
+                        ...provided,
+                        backgroundColor: "var(--surface)",
+                        border: "1px solid var(--border)",
+                        zIndex: 30,
+                      }),
                       option: (provided, state) => ({
                         ...provided,
-                        color: state.isFocused ? 'var(--text)' : 'var(--text)',
-                        backgroundColor: state.isFocused ? 'var(--background)' : 'var(--button-hover)',
-                        '&:hover': {
-                          backgroundColor: 'var(--button)',
-                        },
+                        backgroundColor: state.isFocused
+                          ? "var(--surface-hover, rgba(14,165,233,0.1))"
+                          : "var(--surface)",
+                        color: "var(--text)",
+                        cursor: "pointer",
                       }),
                     }}
                   />
                 </div>
-                <div>
-                  <CustomDatePicker
-                    label="Select Date"
-                    value={selectedDate}
-                    onChange={handleDateChange}
-                    size="small"
-                    sx={{ width: "100%" }}
+
+                <div className="io-form-group">
+                  <label>
+                    <CalendarMonthOutlinedIcon style={{ fontSize: 16, verticalAlign: "middle", marginRight: 4 }} />
+                    Record Date
+                  </label>
+                  <input
+                    type="date"
+                    className="io-form-input"
+                    value={selectedDate.format("YYYY-MM-DD")}
+                    onChange={(e) => {
+                      if (e.target.value) setSelectedDate(dayjs(e.target.value));
+                    }}
                   />
                 </div>
-                <div>
-                  <InputBox
-                    label="S.No"
+
+                <div className="io-form-group">
+                  <label>
+                    <ReceiptLongOutlinedIcon style={{ fontSize: 16, verticalAlign: "middle", marginRight: 4 }} />
+                    Bill Number (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    className="io-form-input"
+                    placeholder="Leave empty for all bills..."
                     value={bill}
                     onChange={(e) => setBill(e.target.value)}
-                    min={0}
-                    size="small"
-                    sx={{ width: "100%" }}
                   />
-                  <p
-                    style={{
-                      color: "var(--text)",
-                    }}
-                  >
-                    (optional)
-                  </p>
                 </div>
+
                 <button
-                  className="dist_button"
+                  type="button"
+                  className="io-btn export"
                   onClick={handleDownload}
                   disabled={isLoading}
                 >
-                  <DownloadIcon style={{ marginRight: "10px" }} />
-                  Download As CSV
+                  <FileDownloadOutlinedIcon />
+                  {isLoading ? "Preparing Download..." : "Download Stock Spreadsheet"}
                 </button>
               </div>
 
+              {/* Card 2: Import Sold Stock */}
+              <div className="io-card">
+                <div className="io-card-header">
+                  <div className="io-card-icon import">
+                    <FileUploadOutlinedIcon style={{ fontSize: 28 }} />
+                  </div>
+                  <div className="io-card-title">
+                    <h3>Import Sales Data</h3>
+                    <p>Upload sold stock records from Excel</p>
+                  </div>
+                </div>
+
+                <ImportData isEmbedded={true} />
+              </div>
             </div>
           </div>
         </div>

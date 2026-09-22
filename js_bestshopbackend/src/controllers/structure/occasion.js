@@ -2,12 +2,16 @@ const { get_query_database, post_query_database } = require("../../config/databa
 
 exports.get_occasion = async (req, res) => {
   const size = req.query.size;
-  if (!size) {
-    return res.status(400).json({ error: "size is required in query" });
-  }
   try {
-    const query = `SELECT id, occasion_name AS name FROM occasion WHERE size = ? AND status = '1'`;
-    const occasions = await get_query_database(query, [size]);
+    let query, params;
+    if (size) {
+      query = `SELECT id, occasion_name AS name FROM occasion WHERE size = ? AND status = '1'`;
+      params = [size];
+    } else {
+      query = `SELECT id, occasion_name AS name FROM occasion WHERE status = '1'`;
+      params = [];
+    }
+    const occasions = await get_query_database(query, params);
     res.json(occasions);
   } catch (err) {
     console.error("Error fetching occasions:", err);
@@ -17,13 +21,20 @@ exports.get_occasion = async (req, res) => {
 
 exports.post_occasion = async (req, res) => {
   const { size, name } = req.body;
-  if (!size || !name) {
-    return res.status(400).json({ error: "size and name are required" });
+  if (!name) {
+    return res.status(400).json({ error: "name is required" });
   }
   try {
     const formatted_name = name.toUpperCase();
+    let sizeVal = size;
+    if (!sizeVal || sizeVal === "0" || sizeVal === 0) {
+      const existingSizes = await get_query_database("SELECT id FROM size WHERE status = '1' ORDER BY id DESC LIMIT 1");
+      if (existingSizes && existingSizes.length > 0) {
+        sizeVal = existingSizes[0].id;
+      }
+    }
     const query = `INSERT INTO occasion (size, occasion_name) VALUES (?, ?)`;
-    const success_message = await post_query_database(query, [size, formatted_name], "Occasion added successfully");
+    const success_message = await post_query_database(query, [sizeVal, formatted_name], "Occasion added successfully");
     res.json({ message: success_message });
   } catch (err) {
     console.error("Error adding occasion:", err);

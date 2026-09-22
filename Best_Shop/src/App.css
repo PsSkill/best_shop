@@ -171,15 +171,18 @@
 
 .dashboard-container {
   height: 100vh;
+  max-height: 100vh;
   display: flex;
   flex-direction: column;
-
+  overflow: hidden;
 }
 
 .vandc-container {
   display: flex;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   width: 100%;
+  overflow: hidden;
 }
 
 

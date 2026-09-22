@@ -2,12 +2,16 @@ const { get_query_database, post_query_database } = require("../../config/databa
 
 exports.get_type = async (req, res) => {
   const occasion = req.query.occasion;
-  if (!occasion) {
-    return res.status(400).json({ error: "occasion is required in query" });
-  }
   try {
-    const query = `SELECT id, type_name AS name FROM type WHERE occasion = ? AND status = '1'`;
-    const types = await get_query_database(query, [occasion]);
+    let query, params;
+    if (occasion) {
+      query = `SELECT id, type_name AS name FROM type WHERE occasion = ? AND status = '1'`;
+      params = [occasion];
+    } else {
+      query = `SELECT id, type_name AS name FROM type WHERE status = '1'`;
+      params = [];
+    }
+    const types = await get_query_database(query, params);
     res.json(types);
   } catch (err) {
     console.error("Error fetching types:", err);
@@ -17,13 +21,20 @@ exports.get_type = async (req, res) => {
 
 exports.post_type = async (req, res) => {
   const { occasion, name } = req.body;
-  if (!occasion || !name) {
-    return res.status(400).json({ error: "occasion and name are required" });
+  if (!name) {
+    return res.status(400).json({ error: "name is required" });
   }
   try {
     const formatted_name = name.toUpperCase();
+    let occasionVal = occasion;
+    if (!occasionVal || occasionVal === "0" || occasionVal === 0) {
+      const existingOccasions = await get_query_database("SELECT id FROM occasion WHERE status = '1' ORDER BY id DESC LIMIT 1");
+      if (existingOccasions && existingOccasions.length > 0) {
+        occasionVal = existingOccasions[0].id;
+      }
+    }
     const query = `INSERT INTO type (occasion, type_name) VALUES (?, ?)`;
-    const success_message = await post_query_database(query, [occasion, formatted_name], "Type added successfully");
+    const success_message = await post_query_database(query, [occasionVal, formatted_name], "Type added successfully");
     res.json({ message: success_message });
   } catch (err) {
     console.error("Error adding type:", err);

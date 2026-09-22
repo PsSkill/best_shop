@@ -6,11 +6,11 @@ exports.get_model_dashboard_data = async (req, res) => {
     const query = `
         SELECT
         model.name AS model_name,
-        SUM(test_stock.sell_quantity) AS available_quantity,
-        SUM(test_stock.quantity) AS total_quantity
-        FROM test_stock
-        JOIN model ON test_stock.model = model.id
-        Join item_name ON test_stock.item_name = item_name.id
+        SUM(stock.quantity) AS available_quantity,
+        SUM(stock.quantity) AS total_quantity
+        FROM stock
+        JOIN model ON stock.model = model.id
+        JOIN item_name ON stock.item_name = item_name.id
         WHERE item_name.id = ?
         GROUP BY model.name;
         `;

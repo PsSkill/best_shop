@@ -1,18 +1,14 @@
 import React, { useState } from "react";
 import HorizontalNavbar from "../Horizontal_Navbar/horizontal_navbar";
 import VerticalNavbar from "../Vertical_Navbar/vertical_navbar";
-import "./inventory.css";
+import BarChartOutlinedIcon from "@mui/icons-material/BarChartOutlined";
+import PieChartOutlineOutlinedIcon from "@mui/icons-material/PieChartOutlineOutlined";
 import InventoryDashboard from "../Dashboards/inventory_dashboard";
 import AvailableDashboard from "../Dashboards/available_dashboard";
+import "./inventory.css";
 
 const ModelDashboard = () => {
-  // State to manage which dashboard to display
   const [selectedDashboard, setSelectedDashboard] = useState("inventory");
-
-  // Function to handle button click and update selectedDashboard state
-  const handleButtonClick = (dashboard) => {
-    setSelectedDashboard(dashboard);
-  };
 
   return (
     <div className="dashboard-container">
@@ -20,31 +16,42 @@ const ModelDashboard = () => {
       <div className="vandc-container">
         <VerticalNavbar />
         <div className="dashboard-body">
-          <div className="inventory-and-available-dashb-page">
-            {/* Buttons to switch between dashboards */}
-            <div>
-              <button
-                className={selectedDashboard === "inventory" ? "active" : ""}
-                onClick={() => handleButtonClick("inventory")}
-              >
-                EXPLORE INVENTORY
-              </button>
-              <button
-                className={selectedDashboard === "available" ? "active" : ""}
-                onClick={() => handleButtonClick("available")}
-              >
-                EXPLORE MODELS
-              </button>
+          <div className="inventory-hub">
+            {/* Header */}
+            <div className="inventory-header">
+              <div className="inventory-title">
+                <h1>Stock Insights &amp; Analytics</h1>
+                <p>Visual breakdown of quantities by category and style model</p>
+              </div>
+
+              {/* Tab Selector */}
+              <div className="inventory-tab-bar">
+                <button
+                  type="button"
+                  className={`inventory-tab-btn ${selectedDashboard === "inventory" ? "active" : ""}`}
+                  onClick={() => setSelectedDashboard("inventory")}
+                >
+                  <BarChartOutlinedIcon fontSize="small" />
+                  Category Inventory
+                </button>
+                <button
+                  type="button"
+                  className={`inventory-tab-btn ${selectedDashboard === "available" ? "active" : ""}`}
+                  onClick={() => setSelectedDashboard("available")}
+                >
+                  <PieChartOutlineOutlinedIcon fontSize="small" />
+                  Model Distribution
+                </button>
+              </div>
             </div>
-            <div className={selectedDashboard === "inventory" ? "container-for-inventory" : "hidden"}>
-              
+
+            {/* Content Card */}
+            <div className="inventory-chart-card">
+              {selectedDashboard === "inventory" ? (
                 <InventoryDashboard />
-              
-            </div>
-            <div className={selectedDashboard === "available" ? "container-for-models" : "hidden"}>
-              
+              ) : (
                 <AvailableDashboard />
-              
+              )}
             </div>
           </div>
         </div>
