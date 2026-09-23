@@ -24,7 +24,7 @@ exports.post_login = async (req, res) => {
             password,
             user_detail.password
         );
-        // console.log(await bcrypt.hash(password, 10));
+        console.log(await bcrypt.hash(password, 10));
         
         if (!is_password_valid) {
             return res.status(401).json({ err: "Invalid password" });

@@ -6,14 +6,35 @@ import AddBoxOutlinedIcon from "@mui/icons-material/AddBoxOutlined";
 import StorefrontIcon from "@mui/icons-material/Storefront";
 import "./install_prompt.css";
 
+// Helper to determine if current device is a mobile or tablet
+const isMobileOrTabletDevice = () => {
+  if (typeof window === "undefined" || !window.navigator) return false;
+  const ua = window.navigator.userAgent.toLowerCase();
+  const isMobileUA = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini|tablet|mobile|silk|kindle/i.test(ua);
+  const isIPadOS = navigator.maxTouchPoints && navigator.maxTouchPoints > 2 && /macintosh/i.test(ua);
+  const isTouchScreen = "ontouchstart" in window || navigator.maxTouchPoints > 0;
+  const isSmallViewport = window.innerWidth <= 1024; // tablets and mobiles
+
+  return isMobileUA || isIPadOS || (isTouchScreen && isSmallViewport);
+};
+
 export default function InstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [showBanner, setShowBanner] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
   const [showIOSModal, setShowIOSModal] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
+    // Only enable for mobile and tablet devices
+    const isMobileDevice = isMobileOrTabletDevice();
+    setIsMobile(isMobileDevice);
+
+    if (!isMobileDevice) {
+      return; // Do not show install prompts on desktop / PCs
+    }
+
     // Check if app is already running in standalone mode (installed)
     const isAppStandalone =
       window.matchMedia("(display-mode: standalone)").matches ||
@@ -30,7 +51,7 @@ export default function InstallPrompt() {
 
     // Detect iOS
     const userAgent = window.navigator.userAgent.toLowerCase();
-    const isAppleDevice = /iphone|ipad|ipod/.test(userAgent);
+    const isAppleDevice = /iphone|ipad|ipod/.test(userAgent) || (navigator.maxTouchPoints > 2 && /macintosh/.test(userAgent));
     setIsIOS(isAppleDevice);
 
     if (isAppleDevice && !isAppStandalone && !isDismissed) {
@@ -41,7 +62,7 @@ export default function InstallPrompt() {
       return () => clearTimeout(timer);
     }
 
-    // Handle beforeinstallprompt for Android / Chrome / Edge
+    // Handle beforeinstallprompt for Android / Mobile Chrome
     const handleBeforeInstallPrompt = (e) => {
       e.preventDefault();
       setDeferredPrompt(e);
@@ -54,7 +75,7 @@ export default function InstallPrompt() {
 
     window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
 
-    // Listen for custom manual install trigger from navbar
+    // Listen for custom manual install trigger from mobile menu
     const handleManualTrigger = () => {
       if (deferredPrompt) {
         deferredPrompt.prompt();
@@ -90,13 +111,14 @@ export default function InstallPrompt() {
     sessionStorage.setItem("bestshop_pwa_dismissed", "true");
   };
 
-  if (isStandalone || !showBanner) {
+  // Do not render on desktop / PCs or standalone installed app
+  if (!isMobile || isStandalone || !showBanner) {
     return null;
   }
 
   return (
     <>
-      {/* Floating Bottom Install Banner */}
+      {/* Floating Bottom Install Banner (Mobiles & Tablets Only) */}
       <div className="pwa-install-banner">
         <div className="pwa-app-icon-wrap">
           <StorefrontIcon style={{ fontSize: 26 }} />
@@ -107,7 +129,7 @@ export default function InstallPrompt() {
           <p className="pwa-banner-desc">
             {isIOS
               ? "Add to your home screen for quick mobile POS access."
-              : "Install on mobile for fast, fullscreen stock management."}
+              : "Install on mobile/tablet for fast, fullscreen stock management."}
           </p>
         </div>
 
