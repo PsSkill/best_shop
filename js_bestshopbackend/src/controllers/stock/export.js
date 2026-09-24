@@ -9,6 +9,7 @@ exports.get_csv = async (req, res) => {
   }
   try {
     let query = `SELECT 
+        s.bill_number AS "BILL NO",
         it.name AS ItemName, 
         LPAD(s.quantity, 2, '0') AS QTY, 
         s.purchasing_price AS PurchasePrice, 
@@ -20,8 +21,8 @@ exports.get_csv = async (req, res) => {
         si.name AS SIZES, 
         m.name AS "STYLE MODE", 
         co.name AS COLOUR,
-        oc.occasion_name AS OCCASION,
-        ty.type_name AS TYPE
+        COALESCE(oc.occasion_name, '') AS OCCASION,
+        COALESCE(ty.type_name, '') AS TYPE
     FROM 
         stock s
     INNER JOIN 

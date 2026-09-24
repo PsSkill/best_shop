@@ -14,6 +14,7 @@ import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined";
 import BarChartOutlinedIcon from "@mui/icons-material/BarChartOutlined";
 import FileDownloadOutlinedIcon from "@mui/icons-material/FileDownloadOutlined";
 import GetAppIcon from "@mui/icons-material/GetApp";
+import PersonAddAlt1OutlinedIcon from "@mui/icons-material/PersonAddAlt1Outlined";
 import "./horizontal_navbar.css";
 
 const HorizontalNavbar = () => {
@@ -21,6 +22,8 @@ const HorizontalNavbar = () => {
   const navigate = useNavigate();
   const rawUsername = Cookies.get("username") || "Staff";
   const username = rawUsername.charAt(0).toUpperCase() + rawUsername.slice(1);
+  const rawRole = Cookies.get("role") || "";
+  const isAdmin = Cookies.get("is_admin") === "true" || rawRole.toLowerCase() === "admin" || rawRole === "4" || rawUsername.toLowerCase() === "admin";
 
   const handleNavigate = (path) => {
     navigate(path);
@@ -30,6 +33,8 @@ const HorizontalNavbar = () => {
   const handleLogout = () => {
     Cookies.remove("token");
     Cookies.remove("username");
+    Cookies.remove("role");
+    Cookies.remove("is_admin");
     navigate("/login", { state: { successMessage: "Logged out successfully" } });
   };
 
@@ -40,6 +45,7 @@ const HorizontalNavbar = () => {
     { icon: <Inventory2OutlinedIcon fontSize="small" />, label: "Stock Catalog", path: "/stocks" },
     { icon: <BarChartOutlinedIcon fontSize="small" />, label: "Analytics", path: "/model" },
     { icon: <FileDownloadOutlinedIcon fontSize="small" />, label: "Import / Export", path: "/export" },
+    ...(isAdmin ? [{ icon: <PersonAddAlt1OutlinedIcon fontSize="small" />, label: "Add User", path: "/signup" }] : []),
   ];
 
   return (
@@ -61,12 +67,25 @@ const HorizontalNavbar = () => {
         <CustomizedSwitches />
 
         {/* User Pill */}
-        <div className="navbar-user-chip" title="Signed in user">
+        <div className="navbar-user-chip" title={`Signed in as ${username}${isAdmin ? " (Admin)" : ""}`}>
           <div className="navbar-user-avatar">
             <PersonOutlineIcon style={{ fontSize: 18 }} />
           </div>
           <span>{username}</span>
         </div>
+
+        {/* Add User Button - Admin Only */}
+        {isAdmin && (
+          <button
+            type="button"
+            className="navbar-add-user-btn"
+            onClick={() => handleNavigate("/signup")}
+            title="Create / Add New Staff User (Admin Only)"
+          >
+            <PersonAddAlt1OutlinedIcon style={{ fontSize: 16 }} />
+            <span>Add User</span>
+          </button>
+        )}
 
         {/* Install App Button */}
         <button

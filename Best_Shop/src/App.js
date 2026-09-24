@@ -37,13 +37,46 @@ function Protected({ children }) {
   }
   return null;
 }
+
+function ProtectedAdmin({ children }) {
+  const navigate = useNavigate();
+  const [isAdminAuth, setIsAdminAuth] = useState(false);
+
+  useEffect(() => {
+    const token = Cookies.get("token");
+    const role = (Cookies.get("role") || "").toLowerCase();
+    const username = (Cookies.get("username") || "").toLowerCase();
+    const isAdmin = Cookies.get("is_admin") === "true" || role === "admin" || role === "4" || username === "admin";
+
+    if (!token) {
+      navigate("/login");
+    } else if (!isAdmin) {
+      navigate("/addStock");
+    } else {
+      setIsAdminAuth(true);
+    }
+  }, [navigate]);
+
+  if (isAdminAuth) {
+    return children;
+  }
+  return null;
+}
+
 const routes = () => (
   <Router>
     <InstallPrompt />
     <Routes>
       <Route path="/" element={<Login />} />
       <Route path="/login" element={<Login />} />
-      <Route path="/signup" element={<Signup />} />
+      <Route
+        path="/signup"
+        element={
+          <ProtectedAdmin>
+            <Signup />
+          </ProtectedAdmin>
+        }
+      />
       <Route
         path="/dashboard"
         element={

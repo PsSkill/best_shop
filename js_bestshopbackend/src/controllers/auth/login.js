@@ -12,9 +12,10 @@ exports.post_login = async (req, res) => {
         });
     }
     try {
-        const query = `SELECT id, location, name, password, role
-                       FROM master_user 
-                       WHERE name = ? AND status = '1'`;
+        const query = `SELECT u.id, u.location, u.name, u.password, u.role, r.name AS role_name
+                       FROM master_user u
+                       LEFT JOIN master_roles r ON u.role = r.id
+                       WHERE u.name = ? AND u.status = '1'`;
         const [user_detail] = await get_query_database(query, [name]);
         if (!user_detail) {
             return res.status(404).json({ err: "User not found" });
@@ -24,15 +25,21 @@ exports.post_login = async (req, res) => {
             password,
             user_detail.password
         );
-        console.log(await bcrypt.hash(password, 10));
         
         if (!is_password_valid) {
             return res.status(401).json({ err: "Invalid password" });
         }
+
+        const roleName = user_detail.role_name || (user_detail.role === 4 || user_detail.name.toLowerCase() === 'admin' ? 'Admin' : 'Staff');
+        const isAdmin = (roleName || '').toLowerCase() === 'admin' || user_detail.role === 4 || user_detail.name.toLowerCase() === 'admin';
+
         // Preparing payload for JWT
         const token_payload = {
             id: user_detail.id,
             location: user_detail.location,
+            role: user_detail.role,
+            role_name: roleName,
+            is_admin: isAdmin,
         };
         const token = jwt.sign(token_payload, process.env.JWT_SECRET, {
             expiresIn: "24h",
@@ -40,7 +47,14 @@ exports.post_login = async (req, res) => {
         delete user_detail.password;
         return res
             .status(200)
-            .json({ message: "Login successful", token: token, username: user_detail.name});
+            .json({
+                message: "Login successful",
+                token: token,
+                username: user_detail.name,
+                role: user_detail.role,
+                role_name: roleName,
+                is_admin: isAdmin
+            });
     } catch (err) {
         console.error(err);
         return res.status(500).json({ err: "Internal server error" });

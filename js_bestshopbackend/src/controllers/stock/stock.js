@@ -12,8 +12,8 @@ exports.get_stocks = async (req, res) => {
     });
   }
   try {
-    const query = `
-      SELECT s.id, mu.name AS user , sl.name AS shop, s.date, s.time, s.name, m.name AS model_name, c.name AS color_name, si.name AS size_name, s.quantity, s.selling_price, s.mrp, s.total_price
+    let query = `
+      SELECT s.id, s.bill_number, mu.name AS user , sl.name AS shop, s.date, s.time, s.name, m.name AS model_name, c.name AS color_name, si.name AS size_name, s.quantity, s.purchasing_price, s.selling_price, s.mrp, s.total_price
       FROM stock s
       INNER JOIN master_user mu ON s.user = mu.id
       INNER JOIN shop_location sl ON s.shop_location = sl.id

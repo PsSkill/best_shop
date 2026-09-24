@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import * as XLSX from "xlsx";
 import HorizontalNavbar from "../Horizontal_Navbar/horizontal_navbar";
 import VerticalNavbar from "../Vertical_Navbar/vertical_navbar";
 import { toast, ToastContainer } from "react-toastify";
@@ -69,30 +70,24 @@ const ExportData = () => {
       );
 
       if (success && Array.isArray(data) && data.length > 0) {
-        const headers = Object.keys(data[0]).join(",");
-        const rows = data.map((obj) => Object.values(obj).join(",")).join("\n");
-        const csvContent = `${headers}\n${rows}`;
-
-        const blob = new Blob([csvContent], { type: "text/csv" });
-        const urlPath = window.URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = urlPath;
         let fileName = `Stock_${selectedLocation.label}_${selectedDate.format("YYYY-MM-DD")}`;
         if (bill.trim()) {
           fileName += `_Bill_${bill.trim()}`;
         }
-        fileName += ".csv";
-        link.setAttribute("download", fileName);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        toast.success("Excel/CSV downloaded successfully!");
+        fileName += ".xlsx";
+
+        const worksheet = XLSX.utils.json_to_sheet(data);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Stock Records");
+        XLSX.writeFile(workbook, fileName);
+
+        toast.success("Excel (.xlsx) downloaded successfully!");
       } else {
         toast.info("No stock records found for the selected shop and date.");
       }
     } catch (error) {
-      console.error("Error exporting CSV:", error);
-      toast.error("Failed to export stock file");
+      console.error("Error exporting Excel:", error);
+      toast.error("Failed to export stock Excel file");
     } finally {
       setIsLoading(false);
     }
@@ -120,7 +115,7 @@ const ExportData = () => {
                   </div>
                   <div className="io-card-title">
                     <h3>Export Stock Spreadsheet</h3>
-                    <p>Download CSV/Excel file of incoming inventory</p>
+                    <p>Download Microsoft Excel (.xlsx) file of incoming inventory with Bill numbers</p>
                   </div>
                 </div>
 

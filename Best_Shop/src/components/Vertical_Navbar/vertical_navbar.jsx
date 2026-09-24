@@ -8,11 +8,14 @@ import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined";
 import BarChartOutlinedIcon from "@mui/icons-material/BarChartOutlined";
 import FileDownloadOutlinedIcon from "@mui/icons-material/FileDownloadOutlined";
 import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
+import PersonAddAlt1OutlinedIcon from "@mui/icons-material/PersonAddAlt1Outlined";
 import "./vertical_navbar.css";
 
 const VerticalNavbar = () => {
   const rawUsername = Cookies.get("username") || "Staff";
   const username = rawUsername.charAt(0).toUpperCase() + rawUsername.slice(1);
+  const rawRole = Cookies.get("role") || "";
+  const isAdmin = Cookies.get("is_admin") === "true" || rawRole.toLowerCase() === "admin" || rawRole === "4" || rawUsername.toLowerCase() === "admin";
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -25,6 +28,7 @@ const VerticalNavbar = () => {
     { key: "stocks", icon: <Inventory2OutlinedIcon />, label: "Stock Catalog", path: "/stocks" },
     { key: "model", icon: <BarChartOutlinedIcon />, label: "Analytics", path: "/model" },
     { key: "export", icon: <FileDownloadOutlinedIcon />, label: "Import & Export", path: "/export" },
+    ...(isAdmin ? [{ key: "signup", icon: <PersonAddAlt1OutlinedIcon />, label: "Add User", path: "/signup" }] : []),
   ];
 
   return (
@@ -64,7 +68,7 @@ const VerticalNavbar = () => {
 
       {/* Footer */}
       <div className="sidebar-footer">
-        <span className="sidebar-footer-text">&bull; Best Shop POS System</span>
+        <span className="sidebar-footer-text">&bull; Best Shop</span>
         <span className="sidebar-footer-text" style={{ fontSize: 10, opacity: 0.7 }}>Retail Inventory Manager</span>
       </div>
     </aside>

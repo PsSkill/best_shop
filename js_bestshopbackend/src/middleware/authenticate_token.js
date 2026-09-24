@@ -22,7 +22,10 @@ const authenticate_token = async (req, res, next) => {
                 .status(401)
                 .json({ error: "Unauthorized: Token is revoked" });
         }
-        const query = `SELECT name FROM master_user WHERE id = ?`;
+        const query = `SELECT u.id, u.name, u.role, u.location, r.name AS role_name 
+                       FROM master_user u 
+                       LEFT JOIN master_roles r ON u.role = r.id 
+                       WHERE u.id = ? AND u.status = '1'`;
         const [user] = await get_query_database(query, [decoded.id]);
 
         if (!user) {
@@ -31,8 +34,19 @@ const authenticate_token = async (req, res, next) => {
                 .json({ error: "Unauthorized: Invalid token" });
         }
 
-        req.body.user_id = decoded.id;
-        req.body.location = decoded.location;
+        const isAdmin = user.role === 4 || (user.role_name || '').toLowerCase() === 'admin' || user.name.toLowerCase() === 'admin';
+        req.user = {
+            id: user.id,
+            name: user.name,
+            role: user.role,
+            role_name: user.role_name,
+            location: user.location,
+            is_admin: isAdmin,
+        };
+        req.body.user_id = user.id;
+        if (!req.body.location) {
+            req.body.location = user.location;
+        }
         next();
     } catch (err) {
         console.error("Authentication error:", err);

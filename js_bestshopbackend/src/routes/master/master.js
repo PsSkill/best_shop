@@ -14,7 +14,7 @@ router.delete("/shop-location", shop_location.delete_shop_location);
 router.get("/role", role.get_role);
 router.post("/role", role.post_role);
 router.put("/role", role.update_role);
-router.delete("/route", role.delete_role);
+router.delete("/role", role.delete_role);
 
 // Product master tables GET APIs
 router.get("/category", product_masters.get_master_categories);

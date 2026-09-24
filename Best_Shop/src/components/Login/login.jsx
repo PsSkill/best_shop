@@ -35,9 +35,11 @@ const Login = () => {
       });
 
       if (response.ok) {
-        const { token, username } = await response.json();
-        Cookies.set("token", token);
-        Cookies.set("username", username);
+        const data = await response.json();
+        Cookies.set("token", data.token);
+        Cookies.set("username", data.username);
+        Cookies.set("role", data.role_name || (data.role === 4 ? "Admin" : "Staff"));
+        Cookies.set("is_admin", data.is_admin ? "true" : "false");
         toast.success("Welcome back! Login successful.");
         setTimeout(() => {
           navigate("/addStock");
@@ -120,10 +122,11 @@ const Login = () => {
           </button>
         </form>
 
-        <div className="login-footer-links">
-          <span>Need a new account?</span>
-          <Link to="/signup">Register here</Link>
-        </div>
+        {/* <div className="login-footer-links">
+          <span style={{ color: "var(--text-muted)", fontSize: 12 }}>
+            🔒 Managed POS System &bull; Contact Administrator for account access
+          </span>
+        </div> */}
       </div>
     </div>
   );

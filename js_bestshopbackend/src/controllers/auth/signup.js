@@ -5,10 +5,17 @@ const {
 } = require("../../config/database_utlis");
 
 exports.post_signup = async (req, res) => {
+    // Enforce Admin Only Access
+    if (!req.user || !req.user.is_admin) {
+        return res.status(403).json({
+            error: "Access denied. Only administrators can register new staff accounts.",
+        });
+    }
+
     const { location, name, number, password, role } = req.body;
     if (!location || !name || !number || !password || !role) {
         return res.status(400).json({
-            err: "Location, name, number, password are required",
+            err: "Location, name, number, password and role are required",
         });
     }
     try {
