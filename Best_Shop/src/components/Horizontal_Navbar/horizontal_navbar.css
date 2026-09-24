@@ -194,10 +194,54 @@
 }
 
 @media (max-width: 900px) {
+  .navbar {
+    padding: 8px 14px;
+    height: 60px;
+  }
   .navbar-hamburger {
     display: flex;
   }
   .navbar-user-chip {
     display: none;
+  }
+  .navbar-right {
+    gap: 8px;
+  }
+  .mobile-dropdown-menu {
+    top: 62px;
+    left: 8px;
+    right: 8px;
+    max-height: 80vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+@media (max-width: 600px) {
+  .navbar {
+    padding: 6px 10px;
+  }
+  .navbar-add-user-btn {
+    display: none;
+  }
+  .navbar-logout-btn span {
+    display: none;
+  }
+  .navbar-logout-btn {
+    padding: 8px;
+  }
+  .navbar-title {
+    font-size: 15px;
+  }
+  .navbar-badge {
+    display: none;
+  }
+  .navbar-brand-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+  }
+  .navbar-brand-wrap {
+    gap: 8px;
   }
 }

@@ -34,7 +34,26 @@
   padding: 20px;
 }
 
-@media (max-width: 999px) {
+@media (max-width: 900px) {
+  .dashboard-container {
+    height: auto;
+    min-height: 100vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .vandc-container {
+    height: auto;
+    overflow: visible;
+  }
+
+  .dashboard-body {
+    height: auto;
+    overflow: visible;
+    flex: none;
+    width: 100%;
+  }
+
   .chart-container {
     padding: 12px;
   }

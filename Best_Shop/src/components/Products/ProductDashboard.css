@@ -292,3 +292,66 @@
   gap: 12px;
   margin-top: 16px;
 }
+
+/* Responsive Media Queries */
+@media (max-width: 768px) {
+  .stock-records-hub {
+    padding: 12px 14px;
+    gap: 12px;
+  }
+
+  .stock-records-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .stock-records-title h1 {
+    font-size: 19px;
+  }
+
+  .stock-summary-chips {
+    width: 100%;
+    gap: 8px;
+  }
+
+  .stock-chip {
+    flex: 1;
+    justify-content: center;
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+
+  .stock-filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .stock-search-wrap {
+    min-width: 0;
+    max-width: 100%;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .stock-date-controls {
+    width: 100%;
+    justify-content: space-between;
+    gap: 6px;
+  }
+
+  .stock-date-btn {
+    flex: 1;
+    text-align: center;
+    padding: 8px 8px;
+    font-size: 12px;
+  }
+
+  .modern-stock-table th,
+  .modern-stock-table td {
+    padding: 10px 12px;
+    font-size: 12px;
+  }
+}

@@ -840,7 +840,7 @@ export default function AddStocks() {
             <div className="addstock-right">
 
               {/* Sizes & Quantities card */}
-              <div className="as-card" style={{ flex: 1 }}>
+              <div className="as-card">
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
                   <div className="as-card-title" style={{ margin: 0 }}>
                     <StraightenIcon /> Sizes &amp; Quantities
