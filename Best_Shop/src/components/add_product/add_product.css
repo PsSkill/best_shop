@@ -235,6 +235,37 @@
   color: var(--success) !important;
 }
 
+.as-select-clear-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 3px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+  line-height: 1;
+}
+
+.as-select-clear-btn:hover {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444 !important;
+  transform: scale(1.1);
+}
+
+.as-clear-item {
+  border-bottom: 1px dashed var(--border) !important;
+  margin-bottom: 6px;
+  background: var(--surface-2) !important;
+}
+
+.as-clear-item:hover {
+  background: rgba(239, 68, 68, 0.08) !important;
+  color: #ef4444 !important;
+}
+
 .as-select-value {
   flex: 1;
   white-space: nowrap;
@@ -333,7 +364,58 @@
   background-color: var(--surface-2);
 }
 
-/* Size select within row */
+/* Size select box (modal trigger within row) */
+.as-size-select-box {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 7px 10px;
+  font-size: 13px;
+  color: var(--text);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+  min-height: 36px;
+  font-family: 'Inter', sans-serif;
+  user-select: none;
+  width: 100%;
+}
+
+.as-size-select-box:hover:not(.disabled) {
+  border-color: var(--border-focus);
+  background-color: var(--accent-light);
+}
+
+.as-size-select-box.filled {
+  border-color: var(--success);
+  background-color: var(--success-light);
+}
+
+.as-size-select-box.filled .as-size-select-value {
+  color: var(--success);
+  font-weight: 600;
+}
+
+.as-size-select-box.placeholder .as-size-select-value {
+  color: var(--text-muted);
+}
+
+.as-size-select-box.disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.as-size-select-value {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 13px;
+}
+
 .as-size-select {
   background: var(--surface-2);
   border: 1px solid var(--border);

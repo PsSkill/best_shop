@@ -28,7 +28,7 @@ import ListAltIcon from "@mui/icons-material/ListAlt";
 // ─────────────────────────────────────────────────────────
 // Small reusable: SelectBox
 // ─────────────────────────────────────────────────────────
-function SelectBox({ value, placeholder, onClick, disabled }) {
+function SelectBox({ value, placeholder, onClick, onClear, disabled }) {
   const filled = !!value;
   return (
     <div
@@ -38,7 +38,19 @@ function SelectBox({ value, placeholder, onClick, disabled }) {
     >
       <span className="as-select-value">{value || placeholder}</span>
       <span className="as-select-icons">
-        {filled ? (
+        {filled && onClear ? (
+          <button
+            type="button"
+            className="as-select-clear-btn"
+            title="Clear selection"
+            onClick={(e) => {
+              e.stopPropagation();
+              onClear();
+            }}
+          >
+            <CloseIcon style={{ fontSize: 16 }} />
+          </button>
+        ) : filled ? (
           <CheckCircleOutlineIcon className="check-icon" />
         ) : (
           <KeyboardArrowDownIcon />
@@ -58,6 +70,7 @@ function PickerDialog({
   items,
   selectedId,
   onSelect,
+  allowClear,
   tab,
   setTab,
   newForm,
@@ -132,6 +145,20 @@ function PickerDialog({
             </div>
             {/* List */}
             <div className="as-list-grid">
+              {allowClear && (
+                <div
+                  className={`as-list-item as-clear-item ${!selectedId ? "selected" : ""}`}
+                  onClick={() => {
+                    onSelect(null);
+                    onClose();
+                  }}
+                >
+                  <span style={{ color: "var(--text-muted)", fontStyle: "italic", display: "flex", alignItems: "center", gap: 6 }}>
+                    <CloseIcon style={{ fontSize: 16 }} /> Clear selection (None)
+                  </span>
+                  {!selectedId && <CheckCircleOutlineIcon className="check-icon" style={{ fontSize: 16 }} />}
+                </div>
+              )}
               {filtered.length === 0 ? (
                 <div className="as-loading">No items found</div>
               ) : (
@@ -245,14 +272,16 @@ export default function AddStocks() {
   // ── Dialog open states
   const [dialogs, setDialogs] = useState({
     category: false, itemName: false, subCategory: false, brand: false,
-    model: false, color: false, occasion: false, type: false,
+    model: false, color: false, size: false, occasion: false, type: false,
   });
 
   // ── Dialog tabs
   const [tabs, setTabs] = useState({
     category: "existing", itemName: "existing", subCategory: "existing", brand: "existing",
-    model: "existing", color: "existing", occasion: "existing", type: "existing",
+    model: "existing", color: "existing", size: "existing", occasion: "existing", type: "existing",
   });
+
+  const [activeSizeRowId, setActiveSizeRowId] = useState(null);
 
   // ── New item values
   const [newVals, setNewVals] = useState({
@@ -354,12 +383,12 @@ export default function AddStocks() {
   const handleSelect = (field, value) => {
     const clearMap = {
       category: ["itemName", "subCategory", "brand", "model", "color", "occasion", "type"],
-      itemName: ["subCategory", "brand", "model", "color", "occasion", "type"],
-      subCategory: ["brand", "model", "color", "occasion", "type"],
-      brand: ["model", "color", "occasion", "type"],
-      model: ["color", "occasion", "type"],
-      color: ["occasion", "type"],
-      occasion: ["type"],
+      itemName: ["subCategory", "brand", "model", "color"],
+      subCategory: ["brand", "model", "color"],
+      brand: ["model", "color"],
+      model: ["color"],
+      color: [],
+      occasion: [],
       type: [],
     };
     const toClear = clearMap[field] || [];
@@ -391,13 +420,14 @@ export default function AddStocks() {
     setSizeRows((prev) => prev.filter((r) => r.id !== rowId));
   };
 
-  const updateSizeRow = (rowId, field, value) => {
+  const updateSizeRow = (rowId, field, value, sizeNameOverride) => {
     setSizeRows((prev) =>
       prev.map((r) => {
         if (r.id !== rowId) return r;
         if (field === "size_id") {
-          const found = lists.sizes.find((s) => s.id === Number(value));
-          return { ...r, size_id: value, size_name: found ? found.name : "" };
+          const found = lists.sizes.find((s) => s.id === Number(value) || s.id === value);
+          const name = sizeNameOverride || (found ? (found.name || found.size_name) : "");
+          return { ...r, size_id: value, size_name: name };
         }
         return { ...r, [field]: value };
       })
@@ -579,6 +609,28 @@ export default function AddStocks() {
     });
   };
 
+  const submitNewSize = async () => {
+    if (!newVals.size || !sel.color) return notify.error("Select colour and enter size name.");
+    const fd = new FormData();
+    const sizeName = newVals.size.trim();
+    fd.append("color", sel.color.id);
+    fd.append("name", sizeName);
+    await addNewItem("/api/structure/size", fd, "Size added.", async () => {
+      const res = await requestApi("GET", `/api/structure/size?color=${sel.color.id}`, {});
+      if (res.success && Array.isArray(res.data)) {
+        setLists((prev) => ({ ...prev, sizes: res.data }));
+        if (activeSizeRowId) {
+          const created = res.data.find((s) => (s.name || s.size_name || "").toUpperCase() === sizeName.toUpperCase());
+          if (created) {
+            updateSizeRow(activeSizeRowId, "size_id", created.id, created.name || created.size_name || sizeName);
+          }
+        }
+      }
+      setNewVals((p) => ({ ...p, size: "" }));
+      closeDialog("size");
+    });
+  };
+
   const submitNewOccasion = async () => {
     if (!newVals.occasion) return notify.error("Enter occasion name.");
     const fd = new FormData();
@@ -629,6 +681,7 @@ export default function AddStocks() {
       brand: "/api/structure/brand",
       model: "/api/structure/model",
       color: "/api/structure/color",
+      size: "/api/structure/size",
       occasion: "/api/structure/occasion",
       type: "/api/structure/type",
     };
@@ -639,6 +692,7 @@ export default function AddStocks() {
       brand: () => sel.subCategory && fetchList(`/api/structure/brand?sub_category=${sel.subCategory.id}`, "brands"),
       model: () => sel.brand && fetchList(`/api/structure/model?brand=${sel.brand.id}`, "models"),
       color: () => sel.model && fetchList(`/api/structure/color?model=${sel.model.id}`, "colors"),
+      size: () => sel.color && fetchList(`/api/structure/size?color=${sel.color.id}`, "sizes"),
       occasion: () => fetchList("/api/structure/occasion", "occasions"),
       type: () => fetchList("/api/structure/type", "types"),
     };
@@ -777,7 +831,9 @@ export default function AddStocks() {
                     <div className="as-field">
                       <span className="as-field-label">Occasion <span style={{ fontSize: 10, color: "var(--text-muted)" }}>(optional)</span></span>
                       <SelectBox value={sel.occasion?.name} placeholder="Select"
-                        onClick={() => openDialog("occasion")} disabled={!sel.category} />
+                        onClick={() => openDialog("occasion")}
+                        onClear={() => handleSelect("occasion", null)}
+                        disabled={!sel.category} />
                     </div>
                   </div>
 
@@ -785,7 +841,9 @@ export default function AddStocks() {
                   <div className="as-field">
                     <span className="as-field-label">Type <span style={{ fontSize: 10, color: "var(--text-muted)" }}>(optional)</span></span>
                     <SelectBox value={sel.type?.name} placeholder="Select type (optional)"
-                      onClick={() => openDialog("type")} disabled={!sel.category} />
+                      onClick={() => openDialog("type")}
+                      onClear={() => handleSelect("type", null)}
+                      disabled={!sel.category} />
                   </div>
 
                 </div>
@@ -825,8 +883,40 @@ export default function AddStocks() {
 
               {/* Sizes & Quantities card */}
               <div className="as-card" style={{ flex: 1 }}>
-                <div className="as-card-title">
-                  <StraightenIcon /> Sizes &amp; Quantities
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+                  <div className="as-card-title" style={{ margin: 0 }}>
+                    <StraightenIcon /> Sizes &amp; Quantities
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!sel.color) {
+                        notify.error("Please select Colour first before creating a size.");
+                        return;
+                      }
+                      setActiveSizeRowId(null);
+                      setTabs((p) => ({ ...p, size: "new" }));
+                      openDialog("size");
+                    }}
+                    disabled={!sel.color}
+                    style={{
+                      background: "rgba(14, 165, 233, 0.1)",
+                      color: "var(--accent)",
+                      border: "1px solid rgba(14, 165, 233, 0.25)",
+                      borderRadius: 6,
+                      padding: "4px 10px",
+                      fontSize: 12,
+                      fontWeight: 600,
+                      cursor: sel.color ? "pointer" : "not-allowed",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 4,
+                      opacity: sel.color ? 1 : 0.5,
+                      transition: "all 0.15s ease",
+                    }}
+                  >
+                    <AddIcon style={{ fontSize: 14 }} /> Create / Manage Sizes
+                  </button>
                 </div>
 
                 <div className="as-size-table">
@@ -840,17 +930,28 @@ export default function AddStocks() {
                     {sizeRows.map((row) => (
                       <div key={row.id} className="as-size-row">
                         {/* Size selector */}
-                        <select
-                          className={`as-size-select ${row.size_id ? "has-value" : ""}`}
-                          value={row.size_id}
-                          onChange={(e) => updateSizeRow(row.id, "size_id", e.target.value)}
-                          disabled={!sel.color}
+                        <div
+                          className={`as-size-select-box ${row.size_id ? "filled" : "placeholder"} ${!sel.color ? "disabled" : ""}`}
+                          onClick={() => {
+                            if (!sel.color) {
+                              notify.error("Please select Colour first before choosing a size.");
+                              return;
+                            }
+                            setActiveSizeRowId(row.id);
+                            openDialog("size");
+                          }}
                         >
-                          <option value="">Select size…</option>
-                          {lists.sizes.map((s) => (
-                            <option key={s.id} value={s.id}>{s.name}</option>
-                          ))}
-                        </select>
+                          <span className="as-size-select-value">
+                            {row.size_name || "Select size…"}
+                          </span>
+                          <span className="as-select-icons">
+                            {row.size_id ? (
+                              <CheckCircleOutlineIcon className="check-icon" style={{ fontSize: 16 }} />
+                            ) : (
+                              <KeyboardArrowDownIcon style={{ fontSize: 16 }} />
+                            )}
+                          </span>
+                        </div>
 
                         {/* Qty input */}
                         <input
@@ -871,9 +972,11 @@ export default function AddStocks() {
                     ))}
                   </div>
 
-                  <button className="as-add-size-btn" onClick={addSizeRow} disabled={!sel.color}>
-                    <AddIcon /> Add Size Row
-                  </button>
+                  <div style={{ display: "flex", gap: 10, marginTop: 10 }}>
+                    <button className="as-add-size-btn" style={{ flex: 1 }} onClick={addSizeRow} disabled={!sel.color}>
+                      <AddIcon /> Add Size Row
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -1018,10 +1121,26 @@ export default function AddStocks() {
         onDelete={(id, name) => handleDelete("/api/structure/color", id, name,
           () => sel.model && fetchList(`/api/structure/color?model=${sel.model.id}`, "colors"))} />
 
+      {/* Size */}
+      <PickerDialog open={dialogs.size} onClose={() => closeDialog("size")}
+        title="Size" items={lists.sizes}
+        selectedId={activeSizeRowId ? sizeRows.find(r => r.id === activeSizeRowId)?.size_id : null}
+        onSelect={(v) => {
+          if (v && activeSizeRowId) {
+            updateSizeRow(activeSizeRowId, "size_id", v.id, v.name || v.size_name || "");
+          }
+        }}
+        tab={tabs.size} setTab={(t) => setTabs((p) => ({ ...p, size: t }))}
+        newForm={textNewForm("size", submitNewSize)}
+        onEdit={(item) => openEdit("size", item.id, item.name || item.size_name)}
+        onDelete={(id, name) => handleDelete("/api/structure/size", id, name,
+          () => sel.color && fetchList(`/api/structure/size?color=${sel.color.id}`, "sizes"))} />
+
       {/* Occasion */}
       <PickerDialog open={dialogs.occasion} onClose={() => closeDialog("occasion")}
         title="Occasion" items={lists.occasions} selectedId={sel.occasion?.id}
         onSelect={(v) => handleSelect("occasion", v)}
+        allowClear={true}
         tab={tabs.occasion} setTab={(t) => setTabs((p) => ({ ...p, occasion: t }))}
         newForm={textNewForm("occasion", submitNewOccasion)}
         onEdit={(item) => openEdit("occasion", item.id, item.name)}
@@ -1032,6 +1151,7 @@ export default function AddStocks() {
       <PickerDialog open={dialogs.type} onClose={() => closeDialog("type")}
         title="Type" items={lists.types} selectedId={sel.type?.id}
         onSelect={(v) => handleSelect("type", v)}
+        allowClear={true}
         tab={tabs.type} setTab={(t) => setTabs((p) => ({ ...p, type: t }))}
         newForm={textNewForm("type", submitNewType)}
         onEdit={(item) => openEdit("type", item.id, item.name)}
