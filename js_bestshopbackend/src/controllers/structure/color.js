@@ -4,21 +4,22 @@ const {get_query_database, post_query_database} = require("../../config/database
 exports.get_color = async (req, res) => {
   const model = req.query.model;
 
-  if (!model) {
-    return res.status(400).json({
-      error: "model is required in query!!",
-    });
-  }
-
   try {
-    const query = `
-      SELECT id, name
+    let query = `
+      SELECT MIN(id) AS id, name
       FROM color
-      WHERE model = ?
-      AND status = '1'
+      WHERE status = '1'
     `;
+    const params = [];
 
-    const colors = await get_query_database(query, [model]);
+    if (model) {
+      query += ` AND model = ?`;
+      params.push(model);
+    }
+
+    query += ` GROUP BY name`;
+
+    const colors = await get_query_database(query, params);
     res.json(colors);
   } catch (err) {
     console.error("Error fetching colors:", err);

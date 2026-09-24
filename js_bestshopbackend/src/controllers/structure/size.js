@@ -3,21 +3,22 @@ const { get_query_database, post_query_database } = require("../../config/databa
 exports.get_size = async (req, res) => {
   let color = req.query.color;
 
-  if (!color) {
-    return res.status(400).json({
-      error: "color is required in query!!",
-    });
-  }
-
   try {
-    const query = `
-    SELECT id, name
-    FROM size
-    WHERE color = ?
-      AND status = '1'
+    let query = `
+      SELECT MIN(id) AS id, name
+      FROM size
+      WHERE status = '1'
     `;
+    const params = [];
 
-    const sizes = await get_query_database(query, [color]);
+    if (color) {
+      query += ` AND color = ?`;
+      params.push(color);
+    }
+
+    query += ` GROUP BY name`;
+
+    const sizes = await get_query_database(query, params);
     res.json(sizes);
   } catch (err) {
     console.error("Error fetching sizes:", err);

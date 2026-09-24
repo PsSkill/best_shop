@@ -5,10 +5,10 @@ exports.get_occasion = async (req, res) => {
   try {
     let query, params;
     if (size) {
-      query = `SELECT id, occasion_name AS name FROM occasion WHERE size = ? AND status = '1'`;
+      query = `SELECT MIN(id) AS id, occasion_name AS name FROM occasion WHERE size = ? AND status = '1' GROUP BY occasion_name`;
       params = [size];
     } else {
-      query = `SELECT id, occasion_name AS name FROM occasion WHERE status = '1'`;
+      query = `SELECT MIN(id) AS id, occasion_name AS name FROM occasion WHERE status = '1' GROUP BY occasion_name`;
       params = [];
     }
     const occasions = await get_query_database(query, params);

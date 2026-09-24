@@ -6,21 +6,22 @@ const {
 exports.get_brand = async (req, res) => {
   const sub_category = req.query.sub_category;
 
-  if (!sub_category) {
-    return res.status(400).json({
-      error: "Sub_category is required in query!!",
-    });
-  }
-
   try {
-    const query = `
-      SELECT id, name, image_path
+    let query = `
+      SELECT MIN(id) AS id, name, MAX(image_path) AS image_path
       FROM brand
-      WHERE sub_category = ?
-      AND status = '1'
+      WHERE status = '1'
     `;
+    const params = [];
 
-    const brands = await get_query_database(query, [sub_category]);
+    if (sub_category) {
+      query += ` AND sub_category = ?`;
+      params.push(sub_category);
+    }
+
+    query += ` GROUP BY name`;
+
+    const brands = await get_query_database(query, params);
     res.json(brands);
   } catch (err) {
     console.error("Error fetching brand:", err);

@@ -3,21 +3,22 @@ const { get_query_database, post_query_database } = require("../../config/databa
 exports.get_sub_category = async (req, res) => {
   const item_name = req.query.item_name;
 
-  if (!item_name) {
-    return res.status(400).json({
-      error: "Item_name is required in query!!",
-    });
-  }
-
   try {
-    const query = `
-      SELECT id, name, image_path
+    let query = `
+      SELECT MIN(id) AS id, name, MAX(image_path) AS image_path
       FROM sub_category
-      WHERE item_name = ?
-      AND status = '1'
+      WHERE status = '1'
     `;
+    const params = [];
 
-    const sub_categories = await get_query_database(query, [item_name]);
+    if (item_name) {
+      query += ` AND item_name = ?`;
+      params.push(item_name);
+    }
+
+    query += ` GROUP BY name`;
+
+    const sub_categories = await get_query_database(query, params);
     res.json(sub_categories);
   } catch (err) {
     console.error("Error fetching sub-categories:", err);

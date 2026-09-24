@@ -3,21 +3,22 @@ const { get_query_database, post_query_database } = require("../../config/databa
 exports.get_model = async (req, res) => {
   const brand = req.query.brand;
 
-  if (!brand) {
-    return res.status(400).json({
-      error: "brand is required in query!!",
-    });
-  }
-
   try {
-    const query = `
-      SELECT id, name
+    let query = `
+      SELECT MIN(id) AS id, name
       FROM model
-      WHERE brand = ?
-      AND status = '1'
+      WHERE status = '1'
     `;
+    const params = [];
 
-    const models = await get_query_database(query, [brand]);
+    if (brand) {
+      query += ` AND brand = ?`;
+      params.push(brand);
+    }
+
+    query += ` GROUP BY name`;
+
+    const models = await get_query_database(query, params);
     res.json(models);
   } catch (err) {
     console.error("Error fetching models:", err);

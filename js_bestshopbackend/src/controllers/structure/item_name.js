@@ -3,21 +3,22 @@ const { get_query_database, post_query_database } = require("../../config/databa
 exports.get_item_name = async (req, res) => {
   const category = req.query.category;
 
-  if (!category) {
-    return res.status(400).json({
-      error: "Category is required in query!!",
-    });
-  }
-
   try {
-    const query = `
-      SELECT id, name, image_path
+    let query = `
+      SELECT MIN(id) AS id, name, MAX(image_path) AS image_path
       FROM item_name
-      WHERE category = ?
-      AND status = '1'
+      WHERE status = '1'
     `;
+    const params = [];
 
-    const item_names = await get_query_database(query, [category]);
+    if (category) {
+      query += ` AND category = ?`;
+      params.push(category);
+    }
+
+    query += ` GROUP BY name`;
+
+    const item_names = await get_query_database(query, params);
     res.json(item_names);
   } catch (err) {
     console.error("Error fetching item names:", err);

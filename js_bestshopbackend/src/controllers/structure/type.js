@@ -5,10 +5,10 @@ exports.get_type = async (req, res) => {
   try {
     let query, params;
     if (occasion) {
-      query = `SELECT id, type_name AS name FROM type WHERE occasion = ? AND status = '1'`;
+      query = `SELECT MIN(id) AS id, type_name AS name FROM type WHERE occasion = ? AND status = '1' GROUP BY type_name`;
       params = [occasion];
     } else {
-      query = `SELECT id, type_name AS name FROM type WHERE status = '1'`;
+      query = `SELECT MIN(id) AS id, type_name AS name FROM type WHERE status = '1' GROUP BY type_name`;
       params = [];
     }
     const types = await get_query_database(query, params);

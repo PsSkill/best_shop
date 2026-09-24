@@ -79,19 +79,35 @@ function PickerDialog({
 }) {
   const [search, setSearch] = useState("");
 
-  const filtered = items.filter((i) =>
-    (i.name || i.item_name || i.sub_category_name || i.brand_name || i.size_name || i.model_name || i.occasion_name || i.type_name || "")
-      .toLowerCase()
-      .includes(search.toLowerCase())
-  );
-
   const getName = (item) =>
-    item.name || item.item_name || item.sub_category_name || item.brand_name ||
-    item.size_name || item.model_name || item.occasion_name || item.type_name || "";
+    item?.name || item?.item_name || item?.sub_category_name || item?.brand_name ||
+    item?.size_name || item?.model_name || item?.occasion_name || item?.type_name || "";
+
+  const list = Array.isArray(items) ? items : [];
+
+  // Deduplicate items by displayed name
+  const seenNames = new Set();
+  const dedupedList = [];
+  for (const item of list) {
+    const rawName = getName(item);
+    const normalized = (rawName || "").trim().toUpperCase();
+    if (normalized) {
+      if (!seenNames.has(normalized)) {
+        seenNames.add(normalized);
+        dedupedList.push(item);
+      }
+    } else {
+      dedupedList.push(item);
+    }
+  }
+
+  const filtered = dedupedList.filter((i) =>
+    getName(i).toLowerCase().includes(search.toLowerCase())
+  );
 
   useEffect(() => {
     if (open) setSearch("");
-  }, [open]);
+  }, [open, tab]);
 
   return (
     <Dialog
@@ -256,13 +272,6 @@ export default function AddStocks() {
     types: [],
   });
 
-  // ── Master data (pre-seeded dropdowns)
-  // eslint-disable-next-line no-unused-vars
-  const [master, setMaster] = useState({
-    categories: [], itemNames: [], subCategories: [], brands: [],
-    models: [], colors: [], sizes: [], occasions: [], types: [],
-  });
-
   // ── Size rows: array of { id, size_id, size_name, quantity }
   const [sizeRows, setSizeRows] = useState([{ id: Date.now(), size_id: "", size_name: "", quantity: "" }]);
 
@@ -309,94 +318,24 @@ export default function AddStocks() {
     } catch (_) {}
   }, []);
 
-  const fetchMaster = useCallback(async (url, key) => {
-    try {
-      const res = await requestApi("GET", url, {});
-      if (res.success) setMaster((prev) => ({ ...prev, [key]: res.data }));
-    } catch (_) {}
-  }, []);
-
-  // Initial loads
+  // Initial loads — load all existing items across all levels
   useEffect(() => {
     fetchList("/api/structure/category", "categories");
-    fetchMaster("/api/master/category", "categories");
+    fetchList("/api/structure/item-name", "itemNames");
+    fetchList("/api/structure/sub-category", "subCategories");
+    fetchList("/api/structure/brand", "brands");
+    fetchList("/api/structure/model", "models");
+    fetchList("/api/structure/color", "colors");
+    fetchList("/api/structure/size", "sizes");
     fetchList("/api/structure/occasion", "occasions");
     fetchList("/api/structure/type", "types");
-  }, [fetchList, fetchMaster]);
-
-  // Cascade fetch on selection changes
-  useEffect(() => {
-    if (sel.category) {
-      fetchList(`/api/structure/item-name?category=${sel.category.id}`, "itemNames");
-    }
-  }, [sel.category, fetchList]);
-
-  useEffect(() => {
-    if (sel.itemName) {
-      fetchList(`/api/structure/sub-category?item_name=${sel.itemName.id}`, "subCategories");
-    }
-  }, [sel.itemName, fetchList]);
-
-  useEffect(() => {
-    if (sel.subCategory) {
-      fetchList(`/api/structure/brand?sub_category=${sel.subCategory.id}`, "brands");
-    }
-  }, [sel.subCategory, fetchList]);
-
-  useEffect(() => {
-    if (sel.brand) {
-      fetchList(`/api/structure/model?brand=${sel.brand.id}`, "models");
-    }
-  }, [sel.brand, fetchList]);
-
-  useEffect(() => {
-    if (sel.model) {
-      fetchList(`/api/structure/color?model=${sel.model.id}`, "colors");
-    }
-  }, [sel.model, fetchList]);
-
-  useEffect(() => {
-    if (sel.color) {
-      fetchList(`/api/structure/size?color=${sel.color.id}`, "sizes");
-      // Reset size rows when color changes
-      setSizeRows([{ id: Date.now(), size_id: "", size_name: "", quantity: "" }]);
-    }
-  }, [sel.color, fetchList]);
-
-  useEffect(() => {
-    if (sel.category) {
-      const catId = sel.category.id;
-      fetchMaster(`/api/master/item-name?category_id=${catId}`, "itemNames");
-      fetchMaster(`/api/master/sub-category?category_id=${catId}`, "subCategories");
-      fetchMaster(`/api/master/brand?category_id=${catId}`, "brands");
-      fetchMaster(`/api/master/model?category_id=${catId}`, "models");
-      fetchMaster(`/api/master/color?category_id=${catId}`, "colors");
-      fetchMaster(`/api/master/size?category_id=${catId}`, "sizes");
-      fetchMaster(`/api/master/occasion?category_id=${catId}`, "occasions");
-      fetchMaster(`/api/master/type?category_id=${catId}`, "types");
-    }
-  }, [sel.category, fetchMaster]);
+  }, [fetchList]);
 
   // ─────────────────────────────────────────────────────
-  // Selection handler — clears downstream when parent changes
+  // Selection handler
   // ─────────────────────────────────────────────────────
   const handleSelect = (field, value) => {
-    const clearMap = {
-      category: ["itemName", "subCategory", "brand", "model", "color", "occasion", "type"],
-      itemName: ["subCategory", "brand", "model", "color"],
-      subCategory: ["brand", "model", "color"],
-      brand: ["model", "color"],
-      model: ["color"],
-      color: [],
-      occasion: [],
-      type: [],
-    };
-    const toClear = clearMap[field] || [];
-    setSel((prev) => {
-      const next = { ...prev, [field]: value };
-      toClear.forEach((k) => { next[k] = null; });
-      return next;
-    });
+    setSel((prev) => ({ ...prev, [field]: value }));
     setDialogs((prev) => ({ ...prev, [field]: false }));
     setTabs((prev) => ({ ...prev, [field]: "existing" }));
   };
@@ -531,92 +470,113 @@ export default function AddStocks() {
   const addNewItem = async (endpoint, formData, successMsg, refreshFn) => {
     try {
       const res = await fetch(`${apiHost}${endpoint}`, { method: "POST", body: formData });
-      if (res.ok) { notify.success(successMsg); refreshFn(); }
-      else notify.error("Failed to add.");
-    } catch (_) { notify.error("Failed to add."); }
+      if (res.ok) {
+        notify.success(successMsg);
+        if (refreshFn) await refreshFn();
+      } else {
+        const errorData = await res.json().catch(() => ({}));
+        notify.error(errorData.error || errorData.message || "Failed to add.");
+      }
+    } catch (_) {
+      notify.error("Failed to add.");
+    }
   };
 
   const submitNewCategory = async () => {
     if (!newVals.category) return notify.error("Name is required.");
     const fd = new FormData();
-    fd.append("name", newVals.category);
+    fd.append("name", newVals.category.trim());
     if (newVals.categoryImg) fd.append("image", newVals.categoryImg);
-    await addNewItem("/api/structure/category", fd, "Category added.", () => {
-      fetchList("/api/structure/category", "categories");
+    await addNewItem("/api/structure/category", fd, "Category added.", async () => {
+      await fetchList("/api/structure/category", "categories");
       setNewVals((p) => ({ ...p, category: "", categoryImg: null }));
-      closeDialog("category");
+      setTabs((p) => ({ ...p, category: "existing" }));
     });
   };
 
   const submitNewItemName = async () => {
-    if (!newVals.itemName || !sel.category) return notify.error("Select category and enter name.");
+    if (!newVals.itemName) return notify.error("Enter item name.");
     const fd = new FormData();
-    fd.append("category", sel.category.id);
-    fd.append("name", newVals.itemName);
+    if (sel.category) fd.append("category", sel.category.id);
+    else if (lists.categories.length > 0) fd.append("category", lists.categories[0].id);
+    else fd.append("category", "0");
+    fd.append("name", newVals.itemName.trim());
     if (newVals.itemImg) fd.append("image", newVals.itemImg);
-    await addNewItem("/api/structure/item-name", fd, "Item name added.", () => {
-      fetchList(`/api/structure/item-name?category=${sel.category.id}`, "itemNames");
+    await addNewItem("/api/structure/item-name", fd, "Item name added.", async () => {
+      await fetchList("/api/structure/item-name", "itemNames");
       setNewVals((p) => ({ ...p, itemName: "", itemImg: null }));
-      closeDialog("itemName");
+      setTabs((p) => ({ ...p, itemName: "existing" }));
     });
   };
 
   const submitNewSubCategory = async () => {
-    if (!newVals.subCategory || !sel.itemName) return notify.error("Select item name and enter sub-category.");
+    if (!newVals.subCategory) return notify.error("Enter sub-category name.");
     const fd = new FormData();
-    fd.append("item_name", sel.itemName.id);
-    fd.append("name", newVals.subCategory);
+    if (sel.itemName) fd.append("item_name", sel.itemName.id);
+    else if (lists.itemNames.length > 0) fd.append("item_name", lists.itemNames[0].id);
+    else fd.append("item_name", "0");
+    fd.append("name", newVals.subCategory.trim());
     if (newVals.subImg) fd.append("image", newVals.subImg);
-    await addNewItem("/api/structure/sub-category", fd, "Sub-category added.", () => {
-      fetchList(`/api/structure/sub-category?item_name=${sel.itemName.id}`, "subCategories");
+    await addNewItem("/api/structure/sub-category", fd, "Sub-category added.", async () => {
+      await fetchList("/api/structure/sub-category", "subCategories");
       setNewVals((p) => ({ ...p, subCategory: "", subImg: null }));
-      closeDialog("subCategory");
+      setTabs((p) => ({ ...p, subCategory: "existing" }));
     });
   };
 
   const submitNewBrand = async () => {
-    if (!newVals.brand || !sel.subCategory) return notify.error("Select sub-category and enter brand.");
+    if (!newVals.brand) return notify.error("Enter brand name.");
     const fd = new FormData();
-    fd.append("sub_category", sel.subCategory.id);
-    fd.append("name", newVals.brand);
+    if (sel.subCategory) fd.append("sub_category", sel.subCategory.id);
+    else if (lists.subCategories.length > 0) fd.append("sub_category", lists.subCategories[0].id);
+    else fd.append("sub_category", "0");
+    fd.append("name", newVals.brand.trim());
     if (newVals.brandImg) fd.append("image", newVals.brandImg);
-    await addNewItem("/api/structure/brand", fd, "Brand added.", () => {
-      fetchList(`/api/structure/brand?sub_category=${sel.subCategory.id}`, "brands");
+    await addNewItem("/api/structure/brand", fd, "Brand added.", async () => {
+      await fetchList("/api/structure/brand", "brands");
       setNewVals((p) => ({ ...p, brand: "", brandImg: null }));
-      closeDialog("brand");
+      setTabs((p) => ({ ...p, brand: "existing" }));
     });
   };
 
   const submitNewModel = async () => {
-    if (!newVals.model || !sel.brand) return notify.error("Select brand and enter model.");
+    if (!newVals.model) return notify.error("Enter model name.");
     const fd = new FormData();
-    fd.append("brand", sel.brand.id); fd.append("name", newVals.model);
-    await addNewItem("/api/structure/model", fd, "Model added.", () => {
-      fetchList(`/api/structure/model?brand=${sel.brand.id}`, "models");
+    if (sel.brand) fd.append("brand", sel.brand.id);
+    else if (lists.brands.length > 0) fd.append("brand", lists.brands[0].id);
+    else fd.append("brand", "0");
+    fd.append("name", newVals.model.trim());
+    await addNewItem("/api/structure/model", fd, "Model added.", async () => {
+      await fetchList("/api/structure/model", "models");
       setNewVals((p) => ({ ...p, model: "" }));
-      closeDialog("model");
+      setTabs((p) => ({ ...p, model: "existing" }));
     });
   };
 
   const submitNewColor = async () => {
-    if (!newVals.color || !sel.model) return notify.error("Select model and enter colour.");
+    if (!newVals.color) return notify.error("Enter colour name.");
     const fd = new FormData();
-    fd.append("model", sel.model.id); fd.append("name", newVals.color);
-    await addNewItem("/api/structure/color", fd, "Colour added.", () => {
-      fetchList(`/api/structure/color?model=${sel.model.id}`, "colors");
+    if (sel.model) fd.append("model", sel.model.id);
+    else if (lists.models.length > 0) fd.append("model", lists.models[0].id);
+    else fd.append("model", "0");
+    fd.append("name", newVals.color.trim());
+    await addNewItem("/api/structure/color", fd, "Colour added.", async () => {
+      await fetchList("/api/structure/color", "colors");
       setNewVals((p) => ({ ...p, color: "" }));
-      closeDialog("color");
+      setTabs((p) => ({ ...p, color: "existing" }));
     });
   };
 
   const submitNewSize = async () => {
-    if (!newVals.size || !sel.color) return notify.error("Select colour and enter size name.");
+    if (!newVals.size) return notify.error("Enter size name.");
     const fd = new FormData();
     const sizeName = newVals.size.trim();
-    fd.append("color", sel.color.id);
+    if (sel.color) fd.append("color", sel.color.id);
+    else if (lists.colors.length > 0) fd.append("color", lists.colors[0].id);
+    else fd.append("color", "0");
     fd.append("name", sizeName);
     await addNewItem("/api/structure/size", fd, "Size added.", async () => {
-      const res = await requestApi("GET", `/api/structure/size?color=${sel.color.id}`, {});
+      const res = await requestApi("GET", "/api/structure/size", {});
       if (res.success && Array.isArray(res.data)) {
         setLists((prev) => ({ ...prev, sizes: res.data }));
         if (activeSizeRowId) {
@@ -627,31 +587,31 @@ export default function AddStocks() {
         }
       }
       setNewVals((p) => ({ ...p, size: "" }));
-      closeDialog("size");
+      setTabs((p) => ({ ...p, size: "existing" }));
     });
   };
 
   const submitNewOccasion = async () => {
     if (!newVals.occasion) return notify.error("Enter occasion name.");
     const fd = new FormData();
-    fd.append("name", newVals.occasion);
+    fd.append("name", newVals.occasion.trim());
     fd.append("size", "0");
-    await addNewItem("/api/structure/occasion", fd, "Occasion added.", () => {
-      fetchList("/api/structure/occasion", "occasions");
+    await addNewItem("/api/structure/occasion", fd, "Occasion added.", async () => {
+      await fetchList("/api/structure/occasion", "occasions");
       setNewVals((p) => ({ ...p, occasion: "" }));
-      closeDialog("occasion");
+      setTabs((p) => ({ ...p, occasion: "existing" }));
     });
   };
 
   const submitNewType = async () => {
     if (!newVals.type) return notify.error("Enter type name.");
     const fd = new FormData();
-    fd.append("name", newVals.type);
+    fd.append("name", newVals.type.trim());
     fd.append("occasion", "0");
-    await addNewItem("/api/structure/type", fd, "Type added.", () => {
-      fetchList("/api/structure/type", "types");
+    await addNewItem("/api/structure/type", fd, "Type added.", async () => {
+      await fetchList("/api/structure/type", "types");
       setNewVals((p) => ({ ...p, type: "" }));
-      closeDialog("type");
+      setTabs((p) => ({ ...p, type: "existing" }));
     });
   };
 
@@ -687,12 +647,12 @@ export default function AddStocks() {
     };
     const refreshMap = {
       category: () => fetchList("/api/structure/category", "categories"),
-      itemName: () => sel.category && fetchList(`/api/structure/item-name?category=${sel.category.id}`, "itemNames"),
-      subCategory: () => sel.itemName && fetchList(`/api/structure/sub-category?item_name=${sel.itemName.id}`, "subCategories"),
-      brand: () => sel.subCategory && fetchList(`/api/structure/brand?sub_category=${sel.subCategory.id}`, "brands"),
-      model: () => sel.brand && fetchList(`/api/structure/model?brand=${sel.brand.id}`, "models"),
-      color: () => sel.model && fetchList(`/api/structure/color?model=${sel.model.id}`, "colors"),
-      size: () => sel.color && fetchList(`/api/structure/size?color=${sel.color.id}`, "sizes"),
+      itemName: () => fetchList("/api/structure/item-name", "itemNames"),
+      subCategory: () => fetchList("/api/structure/sub-category", "subCategories"),
+      brand: () => fetchList("/api/structure/brand", "brands"),
+      model: () => fetchList("/api/structure/model", "models"),
+      color: () => fetchList("/api/structure/color", "colors"),
+      size: () => fetchList("/api/structure/size", "sizes"),
       occasion: () => fetchList("/api/structure/occasion", "occasions"),
       type: () => fetchList("/api/structure/type", "types"),
     };
@@ -798,12 +758,12 @@ export default function AddStocks() {
                     <div className="as-field">
                       <span className="as-field-label">Item Name</span>
                       <SelectBox value={sel.itemName?.name} placeholder="Select item"
-                        onClick={() => openDialog("itemName")} disabled={!sel.category} />
+                        onClick={() => openDialog("itemName")} />
                     </div>
                     <div className="as-field">
                       <span className="as-field-label">Sub-Category</span>
                       <SelectBox value={sel.subCategory?.name} placeholder="Select"
-                        onClick={() => openDialog("subCategory")} disabled={!sel.itemName} />
+                        onClick={() => openDialog("subCategory")} />
                     </div>
                   </div>
 
@@ -812,12 +772,12 @@ export default function AddStocks() {
                     <div className="as-field">
                       <span className="as-field-label">Brand</span>
                       <SelectBox value={sel.brand?.name} placeholder="Select brand"
-                        onClick={() => openDialog("brand")} disabled={!sel.subCategory} />
+                        onClick={() => openDialog("brand")} />
                     </div>
                     <div className="as-field">
                       <span className="as-field-label">Model</span>
                       <SelectBox value={sel.model?.name} placeholder="Select model"
-                        onClick={() => openDialog("model")} disabled={!sel.brand} />
+                        onClick={() => openDialog("model")} />
                     </div>
                   </div>
 
@@ -826,14 +786,13 @@ export default function AddStocks() {
                     <div className="as-field">
                       <span className="as-field-label">Colour</span>
                       <SelectBox value={sel.color?.name} placeholder="Select colour"
-                        onClick={() => openDialog("color")} disabled={!sel.model} />
+                        onClick={() => openDialog("color")} />
                     </div>
                     <div className="as-field">
                       <span className="as-field-label">Occasion <span style={{ fontSize: 10, color: "var(--text-muted)" }}>(optional)</span></span>
                       <SelectBox value={sel.occasion?.name} placeholder="Select"
                         onClick={() => openDialog("occasion")}
-                        onClear={() => handleSelect("occasion", null)}
-                        disabled={!sel.category} />
+                        onClear={() => handleSelect("occasion", null)} />
                     </div>
                   </div>
 
@@ -842,8 +801,7 @@ export default function AddStocks() {
                     <span className="as-field-label">Type <span style={{ fontSize: 10, color: "var(--text-muted)" }}>(optional)</span></span>
                     <SelectBox value={sel.type?.name} placeholder="Select type (optional)"
                       onClick={() => openDialog("type")}
-                      onClear={() => handleSelect("type", null)}
-                      disabled={!sel.category} />
+                      onClear={() => handleSelect("type", null)} />
                   </div>
 
                 </div>
@@ -890,15 +848,10 @@ export default function AddStocks() {
                   <button
                     type="button"
                     onClick={() => {
-                      if (!sel.color) {
-                        notify.error("Please select Colour first before creating a size.");
-                        return;
-                      }
                       setActiveSizeRowId(null);
                       setTabs((p) => ({ ...p, size: "new" }));
                       openDialog("size");
                     }}
-                    disabled={!sel.color}
                     style={{
                       background: "rgba(14, 165, 233, 0.1)",
                       color: "var(--accent)",
@@ -907,11 +860,11 @@ export default function AddStocks() {
                       padding: "4px 10px",
                       fontSize: 12,
                       fontWeight: 600,
-                      cursor: sel.color ? "pointer" : "not-allowed",
+                      cursor: "pointer",
                       display: "inline-flex",
                       alignItems: "center",
                       gap: 4,
-                      opacity: sel.color ? 1 : 0.5,
+                      opacity: 1,
                       transition: "all 0.15s ease",
                     }}
                   >
@@ -931,12 +884,8 @@ export default function AddStocks() {
                       <div key={row.id} className="as-size-row">
                         {/* Size selector */}
                         <div
-                          className={`as-size-select-box ${row.size_id ? "filled" : "placeholder"} ${!sel.color ? "disabled" : ""}`}
+                          className={`as-size-select-box ${row.size_id ? "filled" : "placeholder"}`}
                           onClick={() => {
-                            if (!sel.color) {
-                              notify.error("Please select Colour first before choosing a size.");
-                              return;
-                            }
                             setActiveSizeRowId(row.id);
                             openDialog("size");
                           }}
@@ -973,7 +922,7 @@ export default function AddStocks() {
                   </div>
 
                   <div style={{ display: "flex", gap: 10, marginTop: 10 }}>
-                    <button className="as-add-size-btn" style={{ flex: 1 }} onClick={addSizeRow} disabled={!sel.color}>
+                    <button className="as-add-size-btn" style={{ flex: 1 }} onClick={addSizeRow}>
                       <AddIcon /> Add Size Row
                     </button>
                   </div>
@@ -1079,7 +1028,7 @@ export default function AddStocks() {
         newForm={imageNewForm("itemName", "itemImg", submitNewItemName)}
         onEdit={(item) => openEdit("itemName", item.id, item.name)}
         onDelete={(id, name) => handleDelete("/api/structure/item-name", id, name,
-          () => sel.category && fetchList(`/api/structure/item-name?category=${sel.category.id}`, "itemNames"))} />
+          () => fetchList("/api/structure/item-name", "itemNames"))} />
 
       {/* Sub-Category */}
       <PickerDialog open={dialogs.subCategory} onClose={() => closeDialog("subCategory")}
@@ -1089,7 +1038,7 @@ export default function AddStocks() {
         newForm={imageNewForm("subCategory", "subImg", submitNewSubCategory)}
         onEdit={(item) => openEdit("subCategory", item.id, item.name)}
         onDelete={(id, name) => handleDelete("/api/structure/sub-category", id, name,
-          () => sel.itemName && fetchList(`/api/structure/sub-category?item_name=${sel.itemName.id}`, "subCategories"))} />
+          () => fetchList("/api/structure/sub-category", "subCategories"))} />
 
       {/* Brand */}
       <PickerDialog open={dialogs.brand} onClose={() => closeDialog("brand")}
@@ -1099,7 +1048,7 @@ export default function AddStocks() {
         newForm={imageNewForm("brand", "brandImg", submitNewBrand)}
         onEdit={(item) => openEdit("brand", item.id, item.name)}
         onDelete={(id, name) => handleDelete("/api/structure/brand", id, name,
-          () => sel.subCategory && fetchList(`/api/structure/brand?sub_category=${sel.subCategory.id}`, "brands"))} />
+          () => fetchList("/api/structure/brand", "brands"))} />
 
       {/* Model */}
       <PickerDialog open={dialogs.model} onClose={() => closeDialog("model")}
@@ -1109,7 +1058,7 @@ export default function AddStocks() {
         newForm={textNewForm("model", submitNewModel)}
         onEdit={(item) => openEdit("model", item.id, item.name)}
         onDelete={(id, name) => handleDelete("/api/structure/model", id, name,
-          () => sel.brand && fetchList(`/api/structure/model?brand=${sel.brand.id}`, "models"))} />
+          () => fetchList("/api/structure/model", "models"))} />
 
       {/* Colour */}
       <PickerDialog open={dialogs.color} onClose={() => closeDialog("color")}
@@ -1119,7 +1068,7 @@ export default function AddStocks() {
         newForm={textNewForm("color", submitNewColor)}
         onEdit={(item) => openEdit("color", item.id, item.name)}
         onDelete={(id, name) => handleDelete("/api/structure/color", id, name,
-          () => sel.model && fetchList(`/api/structure/color?model=${sel.model.id}`, "colors"))} />
+          () => fetchList("/api/structure/color", "colors"))} />
 
       {/* Size */}
       <PickerDialog open={dialogs.size} onClose={() => closeDialog("size")}
@@ -1134,7 +1083,7 @@ export default function AddStocks() {
         newForm={textNewForm("size", submitNewSize)}
         onEdit={(item) => openEdit("size", item.id, item.name || item.size_name)}
         onDelete={(id, name) => handleDelete("/api/structure/size", id, name,
-          () => sel.color && fetchList(`/api/structure/size?color=${sel.color.id}`, "sizes"))} />
+          () => fetchList("/api/structure/size", "sizes"))} />
 
       {/* Occasion */}
       <PickerDialog open={dialogs.occasion} onClose={() => closeDialog("occasion")}
