@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import Navbar from "../Horizontal_Navbar/horizontal_navbar";
 import VerticalNavbar from "../Vertical_Navbar/vertical_navbar";
 import requestApi from "../../utils/axios";
@@ -63,6 +63,8 @@ function SelectBox({ value, placeholder, onClick, onClear, disabled }) {
 // ─────────────────────────────────────────────────────────
 // Picker Dialog — generic list picker
 // ─────────────────────────────────────────────────────────
+// Picker Dialog — generic list picker
+// ─────────────────────────────────────────────────────────
 function PickerDialog({
   open,
   onClose,
@@ -79,31 +81,38 @@ function PickerDialog({
 }) {
   const [search, setSearch] = useState("");
 
-  const getName = (item) =>
+  const getName = useCallback((item) =>
     item?.name || item?.item_name || item?.sub_category_name || item?.brand_name ||
-    item?.size_name || item?.model_name || item?.occasion_name || item?.type_name || "";
-
-  const list = Array.isArray(items) ? items : [];
+    item?.size_name || item?.model_name || item?.occasion_name || item?.type_name || "", []);
 
   // Deduplicate items by displayed name
-  const seenNames = new Set();
-  const dedupedList = [];
-  for (const item of list) {
-    const rawName = getName(item);
-    const normalized = (rawName || "").trim().toUpperCase();
-    if (normalized) {
-      if (!seenNames.has(normalized)) {
-        seenNames.add(normalized);
-        dedupedList.push(item);
+  const dedupedList = useMemo(() => {
+    const list = Array.isArray(items) ? items : [];
+    const seenNames = new Set();
+    const result = [];
+    for (const item of list) {
+      const rawName = getName(item);
+      const normalized = (rawName || "").trim().toUpperCase();
+      if (normalized) {
+        if (!seenNames.has(normalized)) {
+          seenNames.add(normalized);
+          result.push(item);
+        }
+      } else {
+        result.push(item);
       }
-    } else {
-      dedupedList.push(item);
     }
-  }
+    return result;
+  }, [items, getName]);
 
-  const filtered = dedupedList.filter((i) =>
-    getName(i).toLowerCase().includes(search.toLowerCase())
-  );
+  // Fast filtered search with safety limit for mobile performance
+  const filtered = useMemo(() => {
+    if (!search.trim()) return dedupedList.slice(0, 150);
+    const s = search.trim().toLowerCase();
+    return dedupedList.filter((i) =>
+      getName(i).toLowerCase().includes(s)
+    ).slice(0, 150);
+  }, [dedupedList, search, getName]);
 
   useEffect(() => {
     if (open) setSearch("");
@@ -145,6 +154,11 @@ function PickerDialog({
           <button className={`as-tab ${tab === "new" ? "active" : ""}`} onClick={() => setTab("new")}>
             Add New
           </button>
+          {(onEdit || onDelete) && (
+            <button className={`as-tab ${tab === "manage" ? "active" : ""}`} onClick={() => setTab("manage")}>
+              Manage List
+            </button>
+          )}
         </div>
 
         {tab === "existing" ? (
@@ -187,20 +201,69 @@ function PickerDialog({
                     <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                       {getName(item)}
                     </span>
-                    {(onEdit || onDelete) && (
-                      <span className="as-list-item-actions" onClick={(e) => e.stopPropagation()}>
-                        {onEdit && (
-                          <button className="as-list-item-btn" onClick={() => { onEdit(item); onClose(); }}>
-                            <EditOutlinedIcon />
-                          </button>
-                        )}
-                        {onDelete && (
-                          <button className="as-list-item-btn danger" onClick={() => onDelete(item.id, getName(item))}>
-                            <DeleteOutlineIcon />
-                          </button>
-                        )}
-                      </span>
+                    {selectedId === item.id && (
+                      <CheckCircleOutlineIcon className="check-icon" style={{ fontSize: 16 }} />
                     )}
+                  </div>
+                ))
+              )}
+            </div>
+          </>
+        ) : tab === "manage" ? (
+          <>
+            {/* Search in Manage tab */}
+            <div className="as-search-box">
+              <SearchIcon />
+              <input
+                className="as-search-input"
+                placeholder={`Search ${title.toLowerCase()} to edit / delete...`}
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+            {/* Manage List */}
+            <div className="as-list-grid">
+              {filtered.length === 0 ? (
+                <div className="as-loading">No items found</div>
+              ) : (
+                filtered.map((item) => (
+                  <div
+                    key={item.id}
+                    className="as-list-item"
+                    style={{ cursor: "default" }}
+                  >
+                    <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {getName(item)}
+                    </span>
+                    <span className="as-list-item-actions" onClick={(e) => e.stopPropagation()}>
+                      {onEdit && (
+                        <button
+                          type="button"
+                          className="as-list-item-btn"
+                          title="Edit"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onEdit(item);
+                            onClose();
+                          }}
+                        >
+                          <EditOutlinedIcon />
+                        </button>
+                      )}
+                      {onDelete && (
+                        <button
+                          type="button"
+                          className="as-list-item-btn danger"
+                          title="Delete"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onDelete(item.id, getName(item));
+                          }}
+                        >
+                          <DeleteOutlineIcon />
+                        </button>
+                      )}
+                    </span>
                   </div>
                 ))
               )}
@@ -234,6 +297,53 @@ function EditDialog({ open, onClose, title, value, onChange, onSave }) {
     </Dialog>
   );
 }
+
+// ─────────────────────────────────────────────────────────
+// Non-blocking Delete Confirmation Dialog
+// ─────────────────────────────────────────────────────────
+function DeleteDialog({ open, onClose, name, onConfirm }) {
+  return (
+    <Dialog
+      open={open}
+      onClose={onClose}
+      fullWidth
+      maxWidth="xs"
+      PaperProps={{
+        style: {
+          background: "var(--surface)",
+          color: "var(--text)",
+          borderRadius: 12,
+          border: "1px solid var(--border)",
+        },
+      }}
+    >
+      <div style={{ padding: "16px 20px", fontWeight: 700, fontSize: 15, borderBottom: "1px solid var(--border)" }}>
+        Confirm Deletion
+      </div>
+      <DialogContent style={{ background: "var(--surface)", padding: "18px 20px", color: "var(--text)" }}>
+        <p style={{ margin: 0, fontSize: 14, lineHeight: 1.5 }}>
+          Are you sure you want to delete <strong>"{name}"</strong>?
+        </p>
+        <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", marginTop: 20 }}>
+          <button className="as-btn-secondary" onClick={onClose} style={{ padding: "8px 16px" }}>
+            Cancel
+          </button>
+          <button
+            className="as-btn-primary"
+            onClick={onConfirm}
+            style={{ background: "#ef4444", padding: "8px 16px", color: "#fff" }}
+          >
+            Delete
+          </button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+// Main Component
+// ─────────────────────────────────────────────────────────
 
 // ─────────────────────────────────────────────────────────
 // Main Component
@@ -303,6 +413,15 @@ export default function AddStocks() {
 
   // ── Edit states
   const [edit, setEdit] = useState({ open: false, type: "", id: null, value: "" });
+
+  // ── Delete confirmation state
+  const [deleteConfirm, setDeleteConfirm] = useState({
+    open: false,
+    endpoint: "",
+    id: null,
+    name: "",
+    refreshFn: null,
+  });
 
   // ── Misc
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -616,15 +735,43 @@ export default function AddStocks() {
   };
 
   // ─────────────────────────────────────────────────────
-  // Delete helpers
+  // Delete helpers (non-blocking Material-UI dialog)
   // ─────────────────────────────────────────────────────
-  const handleDelete = async (endpoint, id, name, refreshFn) => {
-    if (!window.confirm(`Delete "${name}"?`)) return;
+  const requestDelete = (endpoint, id, name, refreshFn) => {
+    setDeleteConfirm({
+      open: true,
+      endpoint,
+      id,
+      name,
+      refreshFn,
+    });
+  };
+
+  const closeDeleteConfirm = () => {
+    setDeleteConfirm({
+      open: false,
+      endpoint: "",
+      id: null,
+      name: "",
+      refreshFn: null,
+    });
+  };
+
+  const handleConfirmDelete = async () => {
+    const { endpoint, id, name, refreshFn } = deleteConfirm;
+    closeDeleteConfirm();
+    if (!id || !endpoint) return;
     try {
       const res = await requestApi("DELETE", `${endpoint}?id=${id}`, {});
-      if (res.success) { notify.success(`"${name}" deleted.`); refreshFn(); }
-      else notify.error("Failed to delete.");
-    } catch (_) { notify.error("Failed to delete."); }
+      if (res.success) {
+        notify.success(`"${name}" deleted.`);
+        if (refreshFn) refreshFn();
+      } else {
+        notify.error("Failed to delete.");
+      }
+    } catch (_) {
+      notify.error("Failed to delete.");
+    }
   };
 
   // ─────────────────────────────────────────────────────
@@ -1017,7 +1164,7 @@ export default function AddStocks() {
         tab={tabs.category} setTab={(t) => setTabs((p) => ({ ...p, category: t }))}
         newForm={imageNewForm("category", "categoryImg", submitNewCategory)}
         onEdit={(item) => openEdit("category", item.id, item.name)}
-        onDelete={(id, name) => handleDelete("/api/structure/category", id, name,
+        onDelete={(id, name) => requestDelete("/api/structure/category", id, name,
           () => fetchList("/api/structure/category", "categories"))} />
 
       {/* Item Name */}
@@ -1027,7 +1174,7 @@ export default function AddStocks() {
         tab={tabs.itemName} setTab={(t) => setTabs((p) => ({ ...p, itemName: t }))}
         newForm={imageNewForm("itemName", "itemImg", submitNewItemName)}
         onEdit={(item) => openEdit("itemName", item.id, item.name)}
-        onDelete={(id, name) => handleDelete("/api/structure/item-name", id, name,
+        onDelete={(id, name) => requestDelete("/api/structure/item-name", id, name,
           () => fetchList("/api/structure/item-name", "itemNames"))} />
 
       {/* Sub-Category */}
@@ -1037,7 +1184,7 @@ export default function AddStocks() {
         tab={tabs.subCategory} setTab={(t) => setTabs((p) => ({ ...p, subCategory: t }))}
         newForm={imageNewForm("subCategory", "subImg", submitNewSubCategory)}
         onEdit={(item) => openEdit("subCategory", item.id, item.name)}
-        onDelete={(id, name) => handleDelete("/api/structure/sub-category", id, name,
+        onDelete={(id, name) => requestDelete("/api/structure/sub-category", id, name,
           () => fetchList("/api/structure/sub-category", "subCategories"))} />
 
       {/* Brand */}
@@ -1047,7 +1194,7 @@ export default function AddStocks() {
         tab={tabs.brand} setTab={(t) => setTabs((p) => ({ ...p, brand: t }))}
         newForm={imageNewForm("brand", "brandImg", submitNewBrand)}
         onEdit={(item) => openEdit("brand", item.id, item.name)}
-        onDelete={(id, name) => handleDelete("/api/structure/brand", id, name,
+        onDelete={(id, name) => requestDelete("/api/structure/brand", id, name,
           () => fetchList("/api/structure/brand", "brands"))} />
 
       {/* Model */}
@@ -1057,7 +1204,7 @@ export default function AddStocks() {
         tab={tabs.model} setTab={(t) => setTabs((p) => ({ ...p, model: t }))}
         newForm={textNewForm("model", submitNewModel)}
         onEdit={(item) => openEdit("model", item.id, item.name)}
-        onDelete={(id, name) => handleDelete("/api/structure/model", id, name,
+        onDelete={(id, name) => requestDelete("/api/structure/model", id, name,
           () => fetchList("/api/structure/model", "models"))} />
 
       {/* Colour */}
@@ -1067,7 +1214,7 @@ export default function AddStocks() {
         tab={tabs.color} setTab={(t) => setTabs((p) => ({ ...p, color: t }))}
         newForm={textNewForm("color", submitNewColor)}
         onEdit={(item) => openEdit("color", item.id, item.name)}
-        onDelete={(id, name) => handleDelete("/api/structure/color", id, name,
+        onDelete={(id, name) => requestDelete("/api/structure/color", id, name,
           () => fetchList("/api/structure/color", "colors"))} />
 
       {/* Size */}
@@ -1082,7 +1229,7 @@ export default function AddStocks() {
         tab={tabs.size} setTab={(t) => setTabs((p) => ({ ...p, size: t }))}
         newForm={textNewForm("size", submitNewSize)}
         onEdit={(item) => openEdit("size", item.id, item.name || item.size_name)}
-        onDelete={(id, name) => handleDelete("/api/structure/size", id, name,
+        onDelete={(id, name) => requestDelete("/api/structure/size", id, name,
           () => fetchList("/api/structure/size", "sizes"))} />
 
       {/* Occasion */}
@@ -1093,7 +1240,7 @@ export default function AddStocks() {
         tab={tabs.occasion} setTab={(t) => setTabs((p) => ({ ...p, occasion: t }))}
         newForm={textNewForm("occasion", submitNewOccasion)}
         onEdit={(item) => openEdit("occasion", item.id, item.name)}
-        onDelete={(id, name) => handleDelete("/api/structure/occasion", id, name,
+        onDelete={(id, name) => requestDelete("/api/structure/occasion", id, name,
           () => fetchList("/api/structure/occasion", "occasions"))} />
 
       {/* Type */}
@@ -1104,7 +1251,7 @@ export default function AddStocks() {
         tab={tabs.type} setTab={(t) => setTabs((p) => ({ ...p, type: t }))}
         newForm={textNewForm("type", submitNewType)}
         onEdit={(item) => openEdit("type", item.id, item.name)}
-        onDelete={(id, name) => handleDelete("/api/structure/type", id, name,
+        onDelete={(id, name) => requestDelete("/api/structure/type", id, name,
           () => fetchList("/api/structure/type", "types"))} />
 
       {/* Edit dialog */}
@@ -1112,6 +1259,14 @@ export default function AddStocks() {
         title={edit.type} value={edit.value}
         onChange={(e) => setEdit((p) => ({ ...p, value: e.target.value }))}
         onSave={handleSaveEdit} />
+
+      {/* Delete confirmation dialog */}
+      <DeleteDialog
+        open={deleteConfirm.open}
+        onClose={closeDeleteConfirm}
+        name={deleteConfirm.name}
+        onConfirm={handleConfirmDelete}
+      />
 
       <ToastContainer />
     </div>
